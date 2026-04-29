@@ -11,6 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.example.savestate.components.SavestateBottomNavBar
+import com.example.savestate.navigation.NavGraph
+import com.example.savestate.navigation.NavigationRoute
 import com.example.savestate.ui.theme.SavestateTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +23,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SavestateTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                // sets up the navigation system
+                val navController = rememberNavController()
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = { SavestateBottomNavBar(navController) }
+                ) { innerPadding ->
+                    NavGraph(
+                        navController = navController,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SavestateTheme {
-        Greeting("Android")
     }
 }
