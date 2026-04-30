@@ -27,7 +27,7 @@ import kotlinx.serialization.Serializable
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    modifier: Modifier? = null
+    modifier: Modifier
 ) {
     NavHost(
         navController = navController,
@@ -40,7 +40,7 @@ fun NavGraph(
         }
     ) {
         composable<NavigationRoute.Auth> {
-            AuthScreen { /* cosa fare se il login ha successo */ }
+            AuthScreen(modifier) { /* cosa fare se il login ha successo */ }
             /*
             // in AuthScreen, dopo login avvenuto con successo
             navController.navigate(NavigationRoute.Library) {
