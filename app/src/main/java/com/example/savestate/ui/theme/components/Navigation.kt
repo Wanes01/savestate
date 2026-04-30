@@ -1,4 +1,4 @@
-package com.example.savestate.components
+package com.example.savestate.ui.theme.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.GridView
