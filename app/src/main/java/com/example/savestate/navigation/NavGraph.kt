@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.savestate.ui.theme.screens.auth.AuthScreen
 import kotlinx.serialization.Serializable
 
 // application screen destinations
@@ -39,7 +40,7 @@ fun NavGraph(
         }
     ) {
         composable<NavigationRoute.Auth> {
-            Text("Autenticazione")
+            AuthScreen { /* cosa fare se il login ha successo */ }
             /*
             // in AuthScreen, dopo login avvenuto con successo
             navController.navigate(NavigationRoute.Library) {
