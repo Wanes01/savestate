@@ -1,5 +1,9 @@
 package com.example.savestate.ui.theme.screens.auth
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,10 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,14 +38,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.savestate.R
+import com.example.savestate.ui.theme.components.AppButton
+import com.example.savestate.ui.theme.components.GoogleButton
+import com.example.savestate.ui.theme.components.TextDivider
 
 @Composable
 fun AuthScreen(
@@ -53,7 +63,6 @@ fun AuthScreen(
 
     var isLoginMode by rememberSaveable { mutableStateOf(true) }
     var email by rememberSaveable { mutableStateOf("") }
-    var nickname by rememberSaveable { mutableStateOf("") }
 
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -63,86 +72,133 @@ fun AuthScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        // logo
-        Spacer(modifier = Modifier.height(64.dp))
+        // logo and blurred wallpaper
         Box(
             modifier = Modifier
-                .size(170.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.primary),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .height(260.dp)
         ) {
+            // background image
+            Image(
+                painter = painterResource(id = R.drawable.auth_background),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            // semi-transparent overlay to maintain primary color
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+            )
+            // emulates a fade on the card with a gradient overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0.0f to MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                                0.5f to MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                                0.9f to MaterialTheme.colorScheme.surface
+                            )
+                        )
+                    )
+            )
+
+            // logo
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.logo_auth),
                 contentDescription = "Savestate login/register page",
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(150.dp)
-            )
-        }
-        // login / signup tabs
-        Spacer(modifier = Modifier.height(20.dp))
-        TabRow(
-            selectedTabIndex = if (isLoginMode) 0 else 1
-        ) {
-            AuthTab(
-                selected = isLoginMode,
-                onClick = { isLoginMode = true },
-                text = "Sign in"
-            )
-            AuthTab(
-                selected = !isLoginMode,
-                onClick = { isLoginMode = false },
-                text = "Sign up"
+                tint = Color.White,
+                modifier = Modifier
+                    .size(190.dp)
+                    .align(Alignment.Center)
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-        // input fields form
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = modifier
+                .fillMaxWidth()
+                .offset(y = (-32).dp)
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // email
-            AuthFormInputField(
-                value = email,
-                onValueChange = { email = it },
-                label = "Email"
-            )
-            // nickname, only if on sign up
-            if (!isLoginMode) {
-                AuthFormInputField(
-                    value = nickname,
-                    onValueChange = { nickname = it },
-                    label = "Nickname"
+
+            // login / signup tabs
+            TabRow(
+                selectedTabIndex = if (isLoginMode) 0 else 1
+            ) {
+                AuthTab(
+                    selected = isLoginMode,
+                    onClick = { isLoginMode = true },
+                    text = "Sign in"
+                )
+                AuthTab(
+                    selected = !isLoginMode,
+                    onClick = { isLoginMode = false },
+                    text = "Sign up"
                 )
             }
-            // password
-            AuthFormInputField(
-                value = password,
-                onValueChange = { password = it },
-                label = "Password",
-                isPassword = true,
-                isPasswordVisible = passwordVisible,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                trailingIcon = {
-                    val image = if (passwordVisible) Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = "Toggle password visibility")
-                    }
-                },
-            )
-            // password confirmation
-            AuthFormInputField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = "Confirm Password",
-                isPassword = true,
-                isPasswordVisible = passwordVisible,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+
+            // input fields form
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.animateContentSize(
+                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                )
+            ) {
+                // email
+                AuthFormInputField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = "Email"
+                )
+                // password
+                AuthFormInputField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Password",
+                    isPassword = true,
+                    isPasswordVisible = passwordVisible,
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Filled.Visibility
+                        else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = image,
+                                contentDescription = "Toggle password visibility"
+                            )
+                        }
+                    },
+                )
+                // password confirmation
+                if (!isLoginMode) {
+                    AuthFormInputField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = "Confirm Password",
+                        isPassword = true,
+                        isPasswordVisible = passwordVisible,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            AppButton(
+                onClick = {}
+            ) {
+                Text(
+                    text = if (isLoginMode) "Sign in" else "Create account",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            TextDivider("Or sign ${if (isLoginMode) "in" else "up"} with...")
+
+            GoogleButton(
+                text = if (isLoginMode) "Sign in with Google" else "Sign up with Google",
+                onClick = {}
             )
         }
     }
@@ -173,7 +229,6 @@ fun AuthFormInputField(
     label: String,
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
-    keyboardOptions: KeyboardOptions =  KeyboardOptions.Default,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
     OutlinedTextField(
@@ -185,7 +240,7 @@ fun AuthFormInputField(
         visualTransformation =
             if (isPassword && !isPasswordVisible) PasswordVisualTransformation()
             else VisualTransformation.None,
-        keyboardOptions = keyboardOptions,
-        trailingIcon = trailingIcon
+        keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
+        trailingIcon = trailingIcon,
     )
 }
