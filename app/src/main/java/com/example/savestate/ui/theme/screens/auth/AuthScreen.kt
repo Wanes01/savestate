@@ -154,7 +154,8 @@ fun AuthScreen(
                 AuthFormInputField(
                     value = email,
                     onValueChange = { email = it },
-                    label = "Email"
+                    label = "Email",
+                    keyboardType = KeyboardType.Email
                 )
                 // password
                 AuthFormInputField(
@@ -163,6 +164,7 @@ fun AuthScreen(
                     label = "Password",
                     isPassword = true,
                     isPasswordVisible = passwordVisible,
+                    keyboardType = KeyboardType.Password,
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Filled.Visibility
                         else Icons.Filled.VisibilityOff
@@ -179,6 +181,7 @@ fun AuthScreen(
                     AuthFormInputField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
+                        keyboardType = KeyboardType.Password,
                         label = "Confirm Password",
                         isPassword = true,
                         isPasswordVisible = passwordVisible,
@@ -229,6 +232,7 @@ fun AuthFormInputField(
     label: String,
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
     OutlinedTextField(
@@ -240,7 +244,7 @@ fun AuthFormInputField(
         visualTransformation =
             if (isPassword && !isPasswordVisible) PasswordVisualTransformation()
             else VisualTransformation.None,
-        keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         trailingIcon = trailingIcon,
     )
 }

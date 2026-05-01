@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "281609934374",
+    "project_id": "savestate-86de1",
+    "storage_bucket": "savestate-86de1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281609934374:android:fb8035880f9868c043f8e7",
+        "android_client_info": {
+          "package_name": "com.example.savestate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCZuX0IqUS61h96arg9krquOpkS87kO5A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
