@@ -1,6 +1,7 @@
 package com.example.savestate.data.repositories
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
@@ -115,7 +116,7 @@ class AuthRepository(
             userPreferences.saveUser(userData)
             Result.success(userData)
 
-        } catch (e: GetCredentialCancellationException) {
+        } catch (_: GetCredentialCancellationException) {
             Result.failure(Exception("Sign-in cancelled."))
         } catch (e: GetCredentialException) {
             Result.failure(Exception("Google sign-in failed: ${e.message}"))

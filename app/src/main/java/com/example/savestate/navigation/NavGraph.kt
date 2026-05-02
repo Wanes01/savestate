@@ -86,7 +86,9 @@ fun NavGraph(
             Text("Statistiche")
         }
         composable<NavigationRoute.Profile> {
-            ProfileScreen(modifier, appViewModel)
+            ProfileScreen(modifier, appViewModel) {
+                appViewModel.logout()
+            }
         }
     }
 }

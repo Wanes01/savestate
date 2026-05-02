@@ -53,7 +53,7 @@ fun SavestateTopBar(
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
-        title = { Text(title, style = MaterialTheme.typography.headlineMedium) },
+        title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
         actions = actions,
         modifier = modifier
     )
