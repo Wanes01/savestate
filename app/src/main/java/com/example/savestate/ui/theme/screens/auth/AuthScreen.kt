@@ -1,10 +1,13 @@
 package com.example.savestate.ui.theme.screens.auth
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +33,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
@@ -42,11 +47,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.savestate.R
 import com.example.savestate.ui.theme.components.AppButton
@@ -68,6 +75,11 @@ fun AuthScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    // navigate on successful login
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) onLoginSuccess()
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -86,21 +98,24 @@ fun AuthScreen(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
+            val isDarkTheme = isSystemInDarkTheme()
             // semi-transparent overlay to maintain primary color
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+                    .background(MaterialTheme.colorScheme.primary.copy(
+                        alpha = if (isDarkTheme) 0.35f else 0.15f)
+                    )
             )
-            // emulates a fade on the card with a gradient overlay
+            // emulates a fade on the image with a gradient overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
                             colorStops = arrayOf(
-                                0.0f to MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
-                                0.5f to MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                                0.0f to MaterialTheme.colorScheme.surface.copy(alpha = if (isDarkTheme) 0.2f else 0.0f),
+                                0.5f to MaterialTheme.colorScheme.surface.copy(alpha = if (isDarkTheme) 0.7f else 0.3f),
                                 0.9f to MaterialTheme.colorScheme.surface
                             )
                         )
@@ -188,20 +203,54 @@ fun AuthScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            AppButton(
-                onClick = {}
-            ) {
+
+            // error message
+            uiState.error?.let { error ->
                 Text(
-                    text = if (isLoginMode) "Sign in" else "Create account",
-                    style = MaterialTheme.typography.titleMedium
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
                 )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            // native log in / register button
+            AppButton(
+                onClick = {
+                    viewModel.clearError()
+                    if (isLoginMode) {
+                        viewModel.login(email, password)
+                    } else {
+                        viewModel.register(email, password, confirmPassword)
+                    }
+                },
+                enabled = !uiState.isLoading
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = if (isLoginMode) "Sign in" else "Create account",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
             TextDivider("Or sign ${if (isLoginMode) "in" else "up"} with...")
 
+            val context = LocalContext.current
             GoogleButton(
                 text = if (isLoginMode) "Sign in with Google" else "Sign up with Google",
-                onClick = {}
+                enabled = !uiState.isLoading,
+                onClick = {
+                    viewModel.clearError()
+                    viewModel.loginWithGoogle(context)
+                }
             )
         }
     }

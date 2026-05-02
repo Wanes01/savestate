@@ -1,13 +1,17 @@
 package com.example.savestate.ui.theme.screens.auth
 
+import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.repositories.AuthRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AuthUIState(
@@ -21,50 +25,73 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     companion object {
         const val MIN_PASSWORD_LENGTH = 8;
     }
-    val uiState: StateFlow<AuthUIState> = authRepository.userData
-        .map { AuthUIState(isLoggedIn = it.isLoggedIn) }
+
+    private val _uiState = MutableStateFlow(AuthUIState())
+    val uiState: StateFlow<AuthUIState> = _uiState
+        .combine(authRepository.userData) { state, userData ->
+            state.copy(isLoggedIn = userData.isLoggedIn)
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = AuthUIState(isLoading = true)
         )
 
-    fun register(email: String, password: String) {
-        // email validation
-        require(isEmailValid(email)) { "Provide a valid email address." }
-        require(isPasswordValid(password)) {
-            "The password is invalid. The password must be at least $MIN_PASSWORD_LENGTH " +
-                    "characters long and include all of the following: lowercase letters, " +
-                    "uppercase letters, special characters, and numbers."
+    fun register(email: String, password: String, confirmPassword: String) {
+        val emailError: String? = validateEmail(email)
+        val passwordError: String? = validatePassword(password, confirmPassword)
+
+        // an error occurred, updates the current error to show
+        if (emailError != null || passwordError != null) {
+            _uiState.update { it.copy(error = emailError ?: passwordError) }
+            return
+        }
+
+        // no client side error occurred. Tries to register the user
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            authRepository.registerWithEmail(email, password)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false, error = error.message) }
+                }
         }
     }
 
-    // checks if the provided string is a valid email address
-    private fun isEmailValid(email: String): Boolean =
-        email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
-
-    // checks if the provide string is a valid password
-    private fun isPasswordValid(password: String): Boolean {
-        val hasNumber = password.any { it.isDigit() }
-        val hasUpperCase = password.any { it.isUpperCase() }
-        val hasLowerCase = password.any { it.isLowerCase() }
-        val hasSpecialChar = password.any { !it.isLetterOrDigit() }
-
-        return password.length >= MIN_PASSWORD_LENGTH &&
-                hasNumber &&
-                hasUpperCase &&
-                hasLowerCase &&
-                hasSpecialChar
-    }
-
     fun login(email: String, password: String) {
-        viewModelScope.launch {
-            // TODO: qua metti la validazione di email e password
+        val emailError = validateEmail(email)
 
+        // does not contact the server. Bad email.
+        emailError?.let {
+            _uiState.update { it.copy(error = emailError) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
             authRepository.loginWithEmail(email, password)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
                 .onFailure { error ->
-                    // gestione futura dell'errore di login.
+                    _uiState.update {
+                        it.copy(isLoading = false, error = error.message)
+                    }
+                }
+        }
+    }
+
+    fun loginWithGoogle(context: Context) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            authRepository.loginWithGoogle(context)
+                .onSuccess { _uiState.update { it.copy(isLoading = false) } }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false, error = error.message) }
                 }
         }
     }
@@ -73,5 +100,26 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             authRepository.logout()
         }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
+    private fun validateEmail(email: String): String? {
+        if (email.isBlank()) return "Email cannot be empty"
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "Invalid email address"
+        return null
+    }
+
+    private fun validatePassword(password: String, confirmPassword: String): String? {
+        if (password.length < MIN_PASSWORD_LENGTH)
+            return "Password must be at least $MIN_PASSWORD_LENGTH characters."
+        if (password != confirmPassword) return "Passwords do not match."
+        if (!password.any { it.isDigit() }) return "Password must contain a number."
+        if (!password.any { it.isUpperCase() }) return "Password must contain an uppercase letter."
+        if (!password.any { it.isLowerCase() }) return "Password must contain a lowercase letter."
+        if (!password.any { !it.isLetterOrDigit() }) return "Password must contain a special character."
+        return null
     }
 }

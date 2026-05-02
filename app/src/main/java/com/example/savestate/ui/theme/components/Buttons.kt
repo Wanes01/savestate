@@ -27,6 +27,7 @@ import com.example.savestate.R
 
 @Composable
 fun AppButton(
+    enabled: Boolean = true,
     onClick: () -> Unit,
     content: @Composable (RowScope.() -> Unit)
 ) {
@@ -41,6 +42,7 @@ fun AppButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp),
+        enabled = enabled
     )
 }
 
@@ -48,14 +50,16 @@ fun AppButton(
 fun GoogleButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp), // Altezza coerente con gli input field
-        shape = RoundedCornerShape(20.dp), // Coerenza con il tuo logo/brand
+            .height(56.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface
@@ -69,7 +73,6 @@ fun GoogleButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // Icona di Google
             Icon(
                 painter = painterResource(id = R.drawable.ic_google), // Assicurati di avere l'SVG nei drawable
                 contentDescription = null,
@@ -79,7 +82,6 @@ fun GoogleButton(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Testo variabile
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
