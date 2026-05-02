@@ -22,4 +22,5 @@ val appModule = module {
     // repository and viewmodel
     single { AuthRepository(get(), get()) }
     viewModel { AuthViewModel(get()) }
+    viewModel { AppViewModel(get()) }
 }

@@ -63,10 +63,12 @@ import com.example.savestate.ui.theme.components.TextDivider
 @Composable
 fun AuthScreen(
     modifier: Modifier,
+    wasLoginSuccessful: Boolean,
     onLoginSuccess: () -> Unit
 ) {
     val viewModel: AuthViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isDarkTheme = isSystemInDarkTheme()
 
     var isLoginMode by rememberSaveable { mutableStateOf(true) }
     var email by rememberSaveable { mutableStateOf("") }
@@ -76,8 +78,8 @@ fun AuthScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     // navigate on successful login
-    LaunchedEffect(uiState.isLoggedIn) {
-        if (uiState.isLoggedIn) onLoginSuccess()
+    LaunchedEffect(wasLoginSuccessful) {
+        if (wasLoginSuccessful) onLoginSuccess()
     }
 
     Column(
@@ -98,7 +100,6 @@ fun AuthScreen(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            val isDarkTheme = isSystemInDarkTheme()
             // semi-transparent overlay to maintain primary color
             Box(
                 modifier = Modifier
@@ -126,7 +127,7 @@ fun AuthScreen(
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.logo_auth),
                 contentDescription = "Savestate login/register page",
-                tint = Color.White,
+                tint = if (isDarkTheme) Color.White else Color.Black,
                 modifier = Modifier
                     .size(190.dp)
                     .align(Alignment.Center)
@@ -289,7 +290,7 @@ fun AuthFormInputField(
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
-        singleLine = isPassword,
+        singleLine = true,
         visualTransformation =
             if (isPassword && !isPasswordVisible) PasswordVisualTransformation()
             else VisualTransformation.None,

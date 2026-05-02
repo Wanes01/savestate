@@ -9,8 +9,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.savestate.navigation.NavigationRoute
 
 /**
@@ -24,17 +26,20 @@ enum class BottomNavBarDestination(
     LIBRARY(NavigationRoute.Library, Icons.Default.GridView, "Library"),
     SEARCH(NavigationRoute.Search, Icons.Default.Search, "Search"),
     STATS(NavigationRoute.Stats, Icons.AutoMirrored.Filled.ShowChart, "Stats"),
-    PROFILE(NavigationRoute.Profile, Icons.Default.Person, "Profile")
+    ACCOUNT(NavigationRoute.Profile, Icons.Default.Person, "Account")
 }
 
 @Composable
 fun SavestateBottomNavBar(
     navController: NavHostController
 ) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
     NavigationBar() {
         BottomNavBarDestination.entries.forEach { destination ->
             NavigationBarItem(
-                selected = false,
+                selected = currentDestination?.route == destination.route::class.qualifiedName,
                 icon = {
                     Icon(
                         destination.icon,

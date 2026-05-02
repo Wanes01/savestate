@@ -8,6 +8,7 @@ import com.example.savestate.data.repositories.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -16,7 +17,6 @@ import kotlinx.coroutines.launch
 
 data class AuthUIState(
     val isLoading: Boolean = false,
-    val isLoggedIn: Boolean = false,
     val error: String? = null
 )
 
@@ -27,15 +27,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     }
 
     private val _uiState = MutableStateFlow(AuthUIState())
-    val uiState: StateFlow<AuthUIState> = _uiState
-        .combine(authRepository.userData) { state, userData ->
-            state.copy(isLoggedIn = userData.isLoggedIn)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AuthUIState(isLoading = true)
-        )
+    val uiState: StateFlow<AuthUIState> = _uiState.asStateFlow()
 
     fun register(email: String, password: String, confirmPassword: String) {
         val emailError: String? = validateEmail(email)
@@ -93,12 +85,6 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false, error = error.message) }
                 }
-        }
-    }
-
-    fun logout() {
-        viewModelScope.launch {
-            authRepository.logout()
         }
     }
 

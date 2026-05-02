@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 data class UserData(
-    val isLoggedIn: Boolean,
-    val userId: String,
-    val displayName: String,
-    val email: String,
-    val photoUrl: String?
+    val isLoggedIn: Boolean = false,
+    val userId: String = "",
+    val displayName: String = "",
+    val email: String = "",
+    val photoUrl: String? = null
 )
 
 class UserPreferences(private val dataStore: DataStore<Preferences>) {
