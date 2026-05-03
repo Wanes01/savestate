@@ -6,7 +6,6 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
-import com.example.savestate.data.datastore.UserData
 import com.example.savestate.data.datastore.UserPreferences
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.firebase.auth.FirebaseAuth
@@ -19,6 +18,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import com.example.savestate.R
+import com.example.savestate.data.models.UserData
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 
 class AuthRepository(

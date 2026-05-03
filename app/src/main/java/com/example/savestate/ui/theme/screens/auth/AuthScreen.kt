@@ -242,11 +242,11 @@ fun AuthScreen(
                     )
                 }
             }
-            TextDivider("Or sign ${if (isLoginMode) "in" else "up"} with...")
+            TextDivider("Or continue with...")
 
             val context = LocalContext.current
             GoogleButton(
-                text = if (isLoginMode) "Sign in with Google" else "Sign up with Google",
+                text = "Sign in with Google",
                 enabled = !uiState.isLoading,
                 onClick = {
                     viewModel.clearError()

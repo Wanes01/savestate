@@ -5,16 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.example.savestate.data.models.UserData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-
-data class UserData(
-    val isLoggedIn: Boolean = false,
-    val userId: String = "",
-    val displayName: String = "",
-    val email: String = "",
-    val photoUrl: String? = null
-)
 
 class UserPreferences(private val dataStore: DataStore<Preferences>) {
     companion object {

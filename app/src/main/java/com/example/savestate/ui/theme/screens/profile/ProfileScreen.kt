@@ -3,6 +3,7 @@ package com.example.savestate.ui.theme.screens.profile
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +37,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.savestate.AppViewModel
 import com.example.savestate.R
@@ -45,6 +49,8 @@ fun ProfileScreen(
     appViewModel: AppViewModel,
     onLogOut: () -> Unit
 ) {
+    val userData by appViewModel.userData.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         appViewModel.setTopBar(
             title = "Profile & Settings"
@@ -70,17 +76,22 @@ fun ProfileScreen(
             .fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Column() {
+        Column {
             // profile info
             ProfileHeader(
-                nickname = "Test01",
-                email = "super.mail@gmail.com",
-                levelLabel = "Level 7 - Veteran",
-                photoUri = null,
+                nickname = userData.displayName,
+                email = userData.email,
+                levelLabel = "Level 7 - Veteran TODOOO",
+                photoUri = userData.photoUrl?.toUri(),
                 onPickPhoto = {}
             )
         }
     }
+}
+
+@Composable
+fun AppSettings() {
+
 }
 
 @Composable
@@ -108,7 +119,7 @@ fun ProfileHeader(
                     contentDescription = "Profile photo",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(90.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
                 )
             } else {
@@ -117,45 +128,51 @@ fun ProfileHeader(
                     contentDescription = "Default profile photo",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(90.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
                 )
             }
             // camera button
-            IconButton(
-                onClick = onPickPhoto,
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(32.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                    .offset(x = 4.dp, y = 4.dp)
+                    .clickable(onClick = onPickPhoto)
             ) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,
                     contentDescription = "Change profile photo",
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
-            // nickname, email and level
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        }
+        // nickname, email and level
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = nickname,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = email,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                tonalElevation = 0.dp
+            ) {
                 Text(
-                    text = nickname,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = email,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                SuggestionChip(
-                    onClick = {},
-                    label = {
-                        Text(
-                            text = levelLabel,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
+                    text = levelLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             }
         }
