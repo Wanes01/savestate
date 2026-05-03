@@ -144,6 +144,11 @@ class AuthRepository(
         photoUrl = photoUrl?.toString()
     )
 
+    /**
+     * Synchronizes the firebase user with the
+     * user data saves locally.
+     * Should be called on app initialization
+     */
     suspend fun syncAuthState() {
         val firebaseUser = firebaseAuth.currentUser
         if (firebaseUser != null) {

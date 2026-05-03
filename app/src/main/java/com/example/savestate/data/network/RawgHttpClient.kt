@@ -8,6 +8,7 @@ import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
+// http client configured to contant RAWG endpoints
 val rawgHttpClient = HttpClient {
     install(ContentNegotiation) {
         json(Json {

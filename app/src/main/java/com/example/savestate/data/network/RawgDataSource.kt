@@ -6,8 +6,19 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
+/**
+ * This class is responsible for making http request to
+ * the RAWG endpoints
+ */
 class RawgDataSource(private val httpClient: HttpClient) {
 
+    /**
+     * Fetches the list of games.
+     *
+     * @param query the query to search
+     * @param page the current page of pageSize games
+     * @param pageSize how many games to include in the response
+     */
     suspend fun searchGames(
         query: String,
         page: Int = 1,
