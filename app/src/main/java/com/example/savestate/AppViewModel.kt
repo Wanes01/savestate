@@ -50,7 +50,7 @@ class AppViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Theme.System
+            initialValue = Theme.SYSTEM
         )
 
     // becomes true when the datastore becomes readable

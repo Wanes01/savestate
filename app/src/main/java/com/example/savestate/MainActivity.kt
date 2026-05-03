@@ -25,10 +25,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SavestateTheme {
+            val appViewModel: AppViewModel = koinViewModel()
+            val theme by appViewModel.theme.collectAsStateWithLifecycle()
+
+            SavestateTheme(theme) {
                 // sets up the navigation system
                 val navController = rememberNavController()
-                val appViewModel: AppViewModel = koinViewModel()
                 val topBarState by appViewModel.topBarState.collectAsStateWithLifecycle()
 
                 // gets the current route. This is done to

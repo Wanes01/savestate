@@ -1,35 +1,96 @@
 package com.example.savestate.ui.theme
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import com.example.savestate.data.models.Theme
 import com.example.savestate.ui.theme.colors.NintendoColors
 import com.example.savestate.ui.theme.colors.PlayStationColors
+import com.example.savestate.ui.theme.colors.SystemColors
 import com.example.savestate.ui.theme.colors.XboxColors
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+// App's default schemes
+private val LightColorScheme = lightColorScheme(
+    primary = SystemColors.primaryLight,
+    onPrimary = SystemColors.onPrimaryLight,
+    primaryContainer = SystemColors.primaryContainerLight,
+    onPrimaryContainer = SystemColors.onPrimaryContainerLight,
+    secondary = SystemColors.secondaryLight,
+    onSecondary = SystemColors.onSecondaryLight,
+    secondaryContainer = SystemColors.secondaryContainerLight,
+    onSecondaryContainer = SystemColors.onSecondaryContainerLight,
+    tertiary = SystemColors.tertiaryLight,
+    onTertiary = SystemColors.onTertiaryLight,
+    tertiaryContainer = SystemColors.tertiaryContainerLight,
+    onTertiaryContainer = SystemColors.onTertiaryContainerLight,
+    error = SystemColors.errorLight,
+    onError = SystemColors.onErrorLight,
+    errorContainer = SystemColors.errorContainerLight,
+    onErrorContainer = SystemColors.onErrorContainerLight,
+    background = SystemColors.backgroundLight,
+    onBackground = SystemColors.onBackgroundLight,
+    surface = SystemColors.surfaceLight,
+    onSurface = SystemColors.onSurfaceLight,
+    surfaceVariant = SystemColors.surfaceVariantLight,
+    onSurfaceVariant = SystemColors.onSurfaceVariantLight,
+    outline = SystemColors.outlineLight,
+    outlineVariant = SystemColors.outlineVariantLight,
+    scrim = SystemColors.scrimLight,
+    inverseSurface = SystemColors.inverseSurfaceLight,
+    inverseOnSurface = SystemColors.inverseOnSurfaceLight,
+    inversePrimary = SystemColors.inversePrimaryLight,
+    surfaceDim = SystemColors.surfaceDimLight,
+    surfaceBright = SystemColors.surfaceBrightLight,
+    surfaceContainerLowest = SystemColors.surfaceContainerLowestLight,
+    surfaceContainerLow = SystemColors.surfaceContainerLowLight,
+    surfaceContainer = SystemColors.surfaceContainerLight,
+    surfaceContainerHigh = SystemColors.surfaceContainerHighLight,
+    surfaceContainerHighest = SystemColors.surfaceContainerHighestLight,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val DarkColorScheme = darkColorScheme(
+    primary = SystemColors.primaryDark,
+    onPrimary = SystemColors.onPrimaryDark,
+    primaryContainer = SystemColors.primaryContainerDark,
+    onPrimaryContainer = SystemColors.onPrimaryContainerDark,
+    secondary = SystemColors.secondaryDark,
+    onSecondary = SystemColors.onSecondaryDark,
+    secondaryContainer = SystemColors.secondaryContainerDark,
+    onSecondaryContainer = SystemColors.onSecondaryContainerDark,
+    tertiary = SystemColors.tertiaryDark,
+    onTertiary = SystemColors.onTertiaryDark,
+    tertiaryContainer = SystemColors.tertiaryContainerDark,
+    onTertiaryContainer = SystemColors.onTertiaryContainerDark,
+    error = SystemColors.errorDark,
+    onError = SystemColors.onErrorDark,
+    errorContainer = SystemColors.errorContainerDark,
+    onErrorContainer = SystemColors.onErrorContainerDark,
+    background = SystemColors.backgroundDark,
+    onBackground = SystemColors.onBackgroundDark,
+    surface = SystemColors.surfaceDark,
+    onSurface = SystemColors.onSurfaceDark,
+    surfaceVariant = SystemColors.surfaceVariantDark,
+    onSurfaceVariant = SystemColors.onSurfaceVariantDark,
+    outline = SystemColors.outlineDark,
+    outlineVariant = SystemColors.outlineVariantDark,
+    scrim = SystemColors.scrimDark,
+    inverseSurface = SystemColors.inverseSurfaceDark,
+    inverseOnSurface = SystemColors.inverseOnSurfaceDark,
+    inversePrimary = SystemColors.inversePrimaryDark,
+    surfaceDim = SystemColors.surfaceDimDark,
+    surfaceBright = SystemColors.surfaceBrightDark,
+    surfaceContainerLowest = SystemColors.surfaceContainerLowestDark,
+    surfaceContainerLow = SystemColors.surfaceContainerLowDark,
+    surfaceContainer = SystemColors.surfaceContainerDark,
+    surfaceContainerHigh = SystemColors.surfaceContainerHighDark,
+    surfaceContainerHighest = SystemColors.surfaceContainerHighestDark,
 )
 
 // PlayStation schemes
@@ -269,19 +330,30 @@ private val NintendoDarkScheme = darkColorScheme(
         content: @Composable () -> Unit
     ) {
         val darkTheme = when (theme) {
-            Theme.System -> isSystemInDarkTheme()
-            Theme.Light -> false
-            Theme.Dark -> true
-            Theme.PlayStation, Theme.Xbox, Theme.Nintendo -> isSystemInDarkTheme()
+            Theme.SYSTEM -> isSystemInDarkTheme()
+            Theme.LIGHT -> false
+            Theme.DARK -> true
+            Theme.PLAYSTATION, Theme.XBOX, Theme.NINTENDO -> isSystemInDarkTheme()
         }
 
         val colorScheme = when (theme) {
-            Theme.System -> if (darkTheme) DarkColorScheme else LightColorScheme
-            Theme.Light -> LightColorScheme
-            Theme.Dark -> DarkColorScheme
-            Theme.PlayStation -> if (darkTheme) PlaystationDarkScheme else PlaystationLightScheme
-            Theme.Xbox -> if (darkTheme) XboxDarkScheme else XboxLightScheme
-            Theme.Nintendo -> if (darkTheme) NintendoDarkScheme else NintendoLightScheme
+            Theme.SYSTEM -> if (darkTheme) DarkColorScheme else LightColorScheme
+            Theme.LIGHT -> LightColorScheme
+            Theme.DARK -> DarkColorScheme
+            Theme.PLAYSTATION -> if (darkTheme) PlaystationDarkScheme else PlaystationLightScheme
+            Theme.XBOX -> if (darkTheme) XboxDarkScheme else XboxLightScheme
+            Theme.NINTENDO -> if (darkTheme) NintendoDarkScheme else NintendoLightScheme
+        }
+
+        val view = LocalView.current
+        if (!view.isInEditMode) {
+            SideEffect {
+                val window = (view.context as Activity).window
+                window.statusBarColor = colorScheme.primaryContainer.toArgb()
+                WindowCompat
+                    .getInsetsController(window, view)
+                    .isAppearanceLightStatusBars = !darkTheme
+            }
         }
 
         MaterialTheme(

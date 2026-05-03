@@ -16,7 +16,7 @@ class ThemePreferences(private val dataStore: DataStore<Preferences>) {
     val theme: Flow<Theme> = dataStore.data
         .map { prefs ->
             // if no theme is saved use the system theme
-            val themeName = prefs[THEME_KEY] ?: Theme.System.name
+            val themeName = prefs[THEME_KEY] ?: Theme.SYSTEM.name
             Theme.valueOf(themeName)
         }
 
