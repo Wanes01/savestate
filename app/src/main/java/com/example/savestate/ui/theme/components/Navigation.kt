@@ -26,7 +26,7 @@ enum class BottomNavBarDestination(
     LIBRARY(NavigationRoute.Library, Icons.Default.GridView, "Library"),
     SEARCH(NavigationRoute.Search, Icons.Default.Search, "Search"),
     STATS(NavigationRoute.Stats, Icons.AutoMirrored.Filled.ShowChart, "Stats"),
-    ACCOUNT(NavigationRoute.Profile, Icons.Default.Person, "Account")
+    ACCOUNT(NavigationRoute.Profile, Icons.Default.Person, "Profile")
 }
 
 @Composable

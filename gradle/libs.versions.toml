@@ -7,6 +7,9 @@ credentialManager = "1.5.0"
 googleid = "1.1.1"
 
 coreKtx = "1.18.0"
+ktorClientContentNegotiation = "3.4.3"
+ktorClientCore = "3.4.3"
+ktorClientOkhttp = "3.4.3"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 composeBom = "2024.09.00"
@@ -19,7 +22,6 @@ espressoCore = "3.7.0"
 
 # Firebase
 firebaseBom = "34.12.0"
-playServicesAuth = "21.5.1"
 
 # Ktor
 ktorSerializationKotlinxJson = "2.3.8"
@@ -58,7 +60,9 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 # Firebase
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
 
 # Ktor
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }

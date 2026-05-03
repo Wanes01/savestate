@@ -21,6 +21,7 @@ import com.example.savestate.AppViewModel
 import com.example.savestate.ui.theme.screens.auth.AuthScreen
 import com.example.savestate.ui.theme.screens.auth.AuthViewModel
 import com.example.savestate.ui.theme.screens.profile.ProfileScreen
+import com.example.savestate.ui.theme.screens.search.SearchScreen
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -80,7 +81,7 @@ fun NavGraph(
             Text("Libreria utente")
         }
         composable<NavigationRoute.Search> {
-            Text("Ricerca")
+            SearchScreen(modifier, appViewModel)
         }
         composable<NavigationRoute.Stats> {
             Text("Statistiche")

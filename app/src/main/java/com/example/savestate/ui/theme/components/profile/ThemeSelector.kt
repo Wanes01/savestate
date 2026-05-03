@@ -104,7 +104,7 @@ private fun ThemeChip(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            ThemeSwatch(theme = theme)
+            ThemeExample(theme = theme)
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
@@ -120,7 +120,7 @@ private fun ThemeChip(
 }
 
 @Composable
-private fun ThemeSwatch(theme: Theme) {
+private fun ThemeExample(theme: Theme) {
     val darkMode = isSystemInDarkTheme()
     val (colorA, colorB) = when (theme) {
         Theme.SYSTEM -> if (darkMode) SystemColors.primaryDark to SystemColors.onPrimaryDark
@@ -141,14 +141,14 @@ private fun ThemeSwatch(theme: Theme) {
             .clip(CircleShape)
             .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
     ) {
-        // metà sinistra
+        // colored left half
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(0.5f)
                 .background(colorA)
         )
-        // metà destra
+        // colored right half
         Box(
             modifier = Modifier
                 .fillMaxHeight()
