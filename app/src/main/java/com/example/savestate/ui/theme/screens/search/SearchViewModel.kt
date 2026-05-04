@@ -96,13 +96,13 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
     private suspend fun searchGames(reset: Boolean) {
         val query = _uiState.value.query
         if (query.isBlank()) {
-            // resets the page when the search bar gets empty
-            _uiState.update { SearchUiState() }
+            // resets the page when the search bar gets empty (maintains the filters)
+            _uiState.update { it.copy(games = emptyList(), currentPage = 1, hasMore = true, query = "") }
             return
         }
 
         if (query.length < MIN_QUERY_LENGTH) {
-            _uiState.update { SearchUiState(query = query) }
+            _uiState.update { it.copy(games = emptyList(), currentPage = 1, hasMore = true) }
             return
         }
 
