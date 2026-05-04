@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
  * @param isLoading true during the first load (new query)
  * @param isLoadingMore true while fetching the next page of games
  * @param error non-null if an error occurs
+ * @param isNetworkError true if the error is caused by a connection error
  * @param query the current search query typed by the user
  * @param currentPage the last page fetched from RAWG
  * @param hasMore true if RAWG has more pages to fetch
@@ -29,6 +30,7 @@ data class SearchUiState(
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val error: String? = null,
+    val isNetworkError: Boolean = false,
     val query: String = "",
     val currentPage: Int = 1,
     val hasMore: Boolean = true
@@ -138,7 +140,11 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
             }
     }
 
+    fun setNetworkError() {
+        _uiState.update { it.copy(error = "No internet connection", isNetworkError = true) }
+    }
+
     fun clearError() {
-        _uiState.update { it.copy(error = null) }
+        _uiState.update { it.copy(error = null, isNetworkError = false) }
     }
 }

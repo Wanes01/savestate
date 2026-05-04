@@ -1,5 +1,7 @@
 package com.example.savestate.ui.theme.screens.search
 
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,12 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
@@ -57,9 +57,21 @@ fun SearchScreen(
     // to know what the user is seeing
     val listState = rememberLazyListState()
 
+    // check network connectivity when the screen is first show
+    val context = LocalContext.current
+    val isConnected = remember {
+        val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+        connectivityManager
+            .getNetworkCapabilities(connectivityManager.activeNetwork)
+            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            ?: false
+    }
+
+    LaunchedEffect(isConnected) {
+        if (!isConnected) searchViewModel.setNetworkError()
+    }
+
     // triggers loadMore when the user is LOAD_MORE_OFFSET items from the end
-    // triggers only when listState.layoutInfo changes and triggers recomposition
-    // only when the boolean value changes
     val shouldLoadMore = remember {
         derivedStateOf {
             val lastVisible = listState
@@ -102,6 +114,7 @@ fun SearchScreen(
                 // an error occurred
                 uiState.error != null -> {
                     SearchErrorMessage(
+                        isNetworkError = uiState.isNetworkError,
                         error = uiState.error!!, // it enters here only if an error occurs
                         onDismiss = { searchViewModel.clearError() }
                     )

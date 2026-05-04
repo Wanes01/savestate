@@ -1,5 +1,6 @@
 package com.example.savestate.ui.theme.components.search
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,8 +26,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import android.provider.Settings
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun SearchBar(
@@ -99,27 +105,43 @@ fun SearchNoResults(query: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun SearchErrorMessage(
+    isNetworkError: Boolean,
     error: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
             Icon(
-                imageVector = Icons.Default.ErrorOutline,
+                imageVector = if (isNetworkError) Icons.Default.WifiOff else Icons.Default.ErrorOutline,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.error
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = error,
+                text = if (isNetworkError) "No internet connection" else error,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onDismiss) { Text("Dismiss") }
+            if (isNetworkError) {
+                Button(onClick = {
+                    context.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+                }) {
+                    Text("Open network settings")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(onClick = onDismiss) { Text("Dismiss") }
+            } else {
+                Button(onClick = onDismiss) { Text("Dismiss") }
+            }
         }
     }
 }
