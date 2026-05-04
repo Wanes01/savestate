@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose) // navigation system
     implementation(libs.ktor.serialization.kotlinx.json) // serialization
     implementation(libs.androidx.lifecycle.viewmodel.compose) // viewmodel

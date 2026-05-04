@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 
 data class TopBarState(
     val title: String = "",
-    val actions: (@Composable RowScope.() -> Unit)? = null
+    val actions: (@Composable RowScope.() -> Unit)? = null,
+    val isTopBarVisible: Boolean = true,
 )
 
 /*
@@ -64,8 +65,8 @@ class AppViewModel(
             initialValue = false
         )
 
-    fun setTopBar(title: String, actions: (@Composable RowScope.() -> Unit)? = null) {
-        _topBarState.update { TopBarState(title, actions) }
+    fun setTopBar(visible: Boolean = true, title: String = "", actions: (@Composable RowScope.() -> Unit)? = null) {
+        _topBarState.update { TopBarState(title, actions, visible) }
     }
 
     fun setTheme(theme: Theme) {

@@ -31,18 +31,13 @@ class MainActivity : ComponentActivity() {
             SavestateTheme(theme) {
                 // sets up the navigation system
                 val navController = rememberNavController()
+                val userData by appViewModel.userData.collectAsStateWithLifecycle()
                 val topBarState by appViewModel.topBarState.collectAsStateWithLifecycle()
-
-                // gets the current route. This is done to
-                // hide the nav and top bars in the auth screen
-                val currentBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = currentBackStackEntry?.destination?.route
-                val showBars = currentRoute != NavigationRoute.Auth::class.qualifiedName
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        if (showBars) {
+                        if (userData.isLoggedIn && topBarState.isTopBarVisible) {
                             SavestateTopBar(
                                 title = topBarState.title,
                                 actions = topBarState.actions ?: {}
@@ -50,7 +45,7 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     bottomBar = {
-                        if (showBars) SavestateBottomNavBar(navController)
+                        if (userData.isLoggedIn) SavestateBottomNavBar(navController)
                     },
                 ) { innerPadding ->
                     NavGraph(

@@ -46,12 +46,12 @@ enum class RawgOrdering(val value: String, val displayName: String) {
  *
  * @param genres a set of genres to include in the response. Defaults to none.
  * @param platforms a set of platforms that must support the response's games. Defaults to none.
- * @param minRating the min RAWG rating of the games. Defaults to 0.
+ * @param minMetacriticRating the min metacritic rating of the games. Defaults to 0.
  * @param ordering how the games in the response must be displayed. Defaults to relevance.
  */
 data class SearchFilters(
     val genres: Set<RawgGenreFilter> = emptySet(),
     val platforms: Set<RawgPlatformFilter> = emptySet(),
-    val minRating: Float = 0f,
+    val minMetacriticRating: Float = 0f,
     val ordering: RawgOrdering = RawgOrdering.RELEVANCE
 )

@@ -42,7 +42,7 @@ fun FilterBottomSheet(
     // local copy of filters, applied only when the user presses apply
     var selectedGenres by remember { mutableStateOf(currentFilters.genres) }
     var selectedPlatforms by remember { mutableStateOf(currentFilters.platforms) }
-    var minRating by remember { mutableFloatStateOf(currentFilters.minRating) }
+    var minRating by remember { mutableFloatStateOf(currentFilters.minMetacriticRating) }
     var ordering by remember { mutableStateOf(currentFilters.ordering) }
 
     // bottom sheet
@@ -93,12 +93,12 @@ fun FilterBottomSheet(
             }
 
             // min rating
-            FilterSection(title = "Min rating: ${if (minRating == 0f) "Any" else "%.1f".format(minRating)}") {
+            FilterSection(title = "Min metacritic rating: ${if (minRating == 0f) "Any" else "%.1f".format(minRating)}") {
                 Slider(
                     value = minRating,
                     onValueChange = { minRating = it },
-                    valueRange = 0f..5f,
-                    steps = 9, // uses a 0.5 step (0, 0.5, etc...)
+                    valueRange = 0f..100f,
+                    steps = 19, // uses a 5 step (5, 10, 15, etc...)
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(
@@ -106,7 +106,7 @@ fun FilterBottomSheet(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("0", style = MaterialTheme.typography.bodySmall)
-                    Text("5", style = MaterialTheme.typography.bodySmall)
+                    Text("100", style = MaterialTheme.typography.bodySmall)
                 }
             }
 

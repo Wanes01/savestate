@@ -1,5 +1,7 @@
 package com.example.savestate.data.network
 
+import android.util.Log
+import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.models.RawgGameListResponse
 import com.example.savestate.data.models.RawgOrdering
 import com.example.savestate.data.models.SearchFilters
@@ -32,6 +34,8 @@ class RawgDataSource(private val httpClient: HttpClient) {
             parameter("search", query)
             parameter("page", page)
             parameter("page_size", pageSize)
+            // filter by major stores to exclude mods and low-quality content
+            parameter("stores", "1,2,3,4,5,6,7,8,11")
 
             // appends filter parameters if they are actually set
             if (filters.genres.isNotEmpty()) {
@@ -40,11 +44,19 @@ class RawgDataSource(private val httpClient: HttpClient) {
             if (filters.platforms.isNotEmpty()) {
                 parameter("platforms", filters.platforms.joinToString(",") { it.id.toString() })
             }
-            if (filters.minRating > 0f) {
-                parameter("rating", "${filters.minRating},5")
+            if (filters.minMetacriticRating > 0) {
+                parameter("metacritic", "${filters.minMetacriticRating.toInt()},100")
             }
             if (filters.ordering != RawgOrdering.RELEVANCE) {
                 parameter("ordering", filters.ordering.value)
             }
         }.body()
+
+    /**
+     * Fetches the details of a single game by its RAWG id.
+     *
+     * @param gameId the RAWG id of the game
+     */
+    suspend fun getGameDetail(gameId: Int): RawgGameDetail =
+        httpClient.get("api/games/$gameId").body()
 }

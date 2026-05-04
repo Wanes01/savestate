@@ -17,9 +17,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.example.savestate.AppViewModel
 import com.example.savestate.ui.theme.screens.auth.AuthScreen
 import com.example.savestate.ui.theme.screens.auth.AuthViewModel
+import com.example.savestate.ui.theme.screens.gamedetail.GameDetailsScreen
 import com.example.savestate.ui.theme.screens.profile.ProfileScreen
 import com.example.savestate.ui.theme.screens.search.SearchScreen
 import kotlinx.serialization.Serializable
@@ -32,7 +34,7 @@ import org.koin.androidx.compose.koinViewModel
     @Serializable data object Search : NavigationRoute
     @Serializable data object Stats : NavigationRoute
     @Serializable data object Profile : NavigationRoute
-    @Serializable data class GameDetail(val gameId: Int) : NavigationRoute
+    @Serializable data class GameDetails(val gameId: Int) : NavigationRoute
 }
 
 @Composable
@@ -84,7 +86,18 @@ fun NavGraph(
             SearchScreen(
                 modifier,
                 appViewModel,
-                onGameClick = {}
+                onGameClick = { gameId ->
+                    navController.navigate(NavigationRoute.GameDetails(gameId))
+                }
+            )
+        }
+        composable<NavigationRoute.GameDetails> { backstackEntry ->
+            val route = backstackEntry.toRoute<NavigationRoute.GameDetails>()
+            GameDetailsScreen(
+                gameId = route.gameId,
+                modifier = modifier,
+                appViewModel = appViewModel,
+                onGoBack = { navController.popBackStack() }
             )
         }
         composable<NavigationRoute.Stats> {
