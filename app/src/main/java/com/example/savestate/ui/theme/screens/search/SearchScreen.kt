@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
+import com.example.savestate.ui.theme.components.search.FilterBottomSheet
 import com.example.savestate.ui.theme.components.search.GameCard
 import com.example.savestate.ui.theme.components.search.SearchBar
 import com.example.savestate.ui.theme.components.search.SearchEmptyPrompt
@@ -166,9 +167,18 @@ fun SearchScreen(
             }
         }
 
+        // filters bottom sheet
+        if (uiState.isFilterSheetOpen) {
+            FilterBottomSheet(
+                currentFilters = uiState.filters,
+                onApply = { searchViewModel.applyFilters(it) },
+                onDismiss = { searchViewModel.setFilterSheetOpen(false) }
+            )
+        }
+
         // floating filter button
         ExtendedFloatingActionButton(
-            onClick = { /* TODO -> redirects to the game page */ },
+            onClick = { searchViewModel.setFilterSheetOpen(true) },
             icon = { Icon(Icons.Default.FilterList, contentDescription = "Filters") },
             text = { Text("Filters") },
             modifier = Modifier

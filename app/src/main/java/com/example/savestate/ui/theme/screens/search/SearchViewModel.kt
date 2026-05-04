@@ -3,6 +3,7 @@ package com.example.savestate.ui.theme.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.models.RawgGame
+import com.example.savestate.data.models.SearchFilters
 import com.example.savestate.data.repositories.RawgRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -24,16 +25,22 @@ import kotlinx.coroutines.launch
  * @param query the current search query typed by the user
  * @param currentPage the last page fetched from RAWG
  * @param hasMore true if RAWG has more pages to fetch
+ * @param filters the filters to use in the games search
+ * @param isFilterSheetOpen true if the filter sheet is open
  */
 data class SearchUiState(
     val games: List<RawgGame> = emptyList(),
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
-    val error: String? = null,
-    val isNetworkError: Boolean = false,
     val query: String = "",
     val currentPage: Int = 1,
-    val hasMore: Boolean = true
+    val hasMore: Boolean = true,
+
+    val error: String? = null,
+    val isNetworkError: Boolean = false,
+
+    val filters: SearchFilters = SearchFilters(),
+    val isFilterSheetOpen: Boolean = false
 )
 
 class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() {
@@ -108,7 +115,7 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
             _uiState.update { it.copy(isLoadingMore = true) }
         }
 
-        rawgRepository.searchGames(query, page)
+        rawgRepository.searchGames(query, page, filters = _uiState.value.filters)
             .onSuccess { response ->
                 _uiState.update {
                     it.copy(
@@ -140,11 +147,33 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
             }
     }
 
+    /**
+     * Sets an error caused by the internet connection
+     */
     fun setNetworkError() {
         _uiState.update { it.copy(error = "No internet connection", isNetworkError = true) }
     }
 
+    /**
+     * Clears the errors to show
+     */
     fun clearError() {
         _uiState.update { it.copy(error = null, isNetworkError = false) }
     }
+
+    /**
+     * Opens or closes the filter bottom sheet.
+     */
+    fun setFilterSheetOpen(open: Boolean) {
+        _uiState.update { it.copy(isFilterSheetOpen = open) }
+    }
+
+    /**
+     * Applies the given filters and re-fetches the games from page 1.
+     */
+    fun applyFilters(filters: SearchFilters) {
+        _uiState.update { it.copy(filters = filters, isFilterSheetOpen = false) }
+        viewModelScope.launch { searchGames(reset = true) }
+    }
+
 }
