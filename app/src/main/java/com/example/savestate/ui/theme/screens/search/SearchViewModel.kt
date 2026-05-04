@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.models.RawgGame
 import com.example.savestate.data.repositories.RawgRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,7 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
 
     companion object {
         private const val QUERY_INPUT_REQUEST_DELAY_MS: Long = 500
+        private const val MIN_QUERY_LENGTH = 3
     }
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -90,6 +92,11 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
             return
         }
 
+        if (query.length < MIN_QUERY_LENGTH) {
+            _uiState.update { SearchUiState(query = query) }
+            return
+        }
+
         // loads the next page of games if possible
         val page = if (reset) 1 else _uiState.value.currentPage + 1
 
@@ -117,7 +124,15 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
                     it.copy(
                         isLoading = false,
                         isLoadingMore = false,
-                        error = error.message
+                        error = when (error) {
+                            /*
+                            It is common for users to type a few characters and then delete
+                            them immediately, so it is believed that displaying this
+                            exception may be redundant
+                             */
+                            is CancellationException -> null
+                            else -> error.message
+                        }
                     )
                 }
             }

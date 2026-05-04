@@ -81,7 +81,11 @@ fun NavGraph(
             Text("Libreria utente")
         }
         composable<NavigationRoute.Search> {
-            SearchScreen(modifier, appViewModel)
+            SearchScreen(
+                modifier,
+                appViewModel,
+                onGameClick = {}
+            )
         }
         composable<NavigationRoute.Stats> {
             Text("Statistiche")

@@ -47,6 +47,12 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
      * Removes the user data from the data store.
      */
     suspend fun clearUser() {
-        dataStore.edit { it.clear() }
+        dataStore.edit { prefs ->
+            prefs.remove(IS_LOGGED_IN)
+            prefs.remove(USER_ID)
+            prefs.remove(DISPLAY_NAME)
+            prefs.remove(EMAIL)
+            prefs.remove(PHOTO_URL)
+        }
     }
 }
