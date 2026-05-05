@@ -49,6 +49,11 @@ fun SearchScreen(
     // to know what the user is seeing
     val listState = rememberLazyListState()
 
+    // goes to the list's top if the query changes
+    LaunchedEffect(uiState.query) {
+        listState.scrollToItem(0)
+    }
+
     LaunchedEffect(Unit) {
         appViewModel.setTopBar(
             title = "Find games"

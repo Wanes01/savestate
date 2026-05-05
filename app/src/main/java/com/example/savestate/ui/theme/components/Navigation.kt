@@ -54,11 +54,12 @@ fun SavestateBottomNavBar(
                         This is done in order to not accumulate screen routes
                          */
                         popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                            saveState = false
+                            inclusive = false
                         }
                         // avoids duplicates if the user clicks on the active tab
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false
                     }
                 }
             )
