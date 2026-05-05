@@ -67,7 +67,10 @@ class RawgDataSource(private val httpClient: HttpClient) {
      * Fetches the list of achievements for a game.
      *
      * @param gameId the RAWG id of the game
+     * @param page the page of achievements to fetch
      */
-    suspend fun getGameAchievements(gameId: Int): RawgAchievementsResponse =
-        httpClient.get("api/games/$gameId/achievements").body()
+    suspend fun getGameAchievements(gameId: Int, page: Int = 1): RawgAchievementsResponse =
+        httpClient.get("api/games/$gameId/achievements") {
+            parameter("page", page)
+        }.body()
 }

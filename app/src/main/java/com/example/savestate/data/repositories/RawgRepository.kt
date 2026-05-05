@@ -1,5 +1,6 @@
 package com.example.savestate.data.repositories
 
+import com.example.savestate.data.models.RawgAchievement
 import com.example.savestate.data.models.RawgAchievementsResponse
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.models.RawgGameListResponse
@@ -28,9 +29,20 @@ class RawgRepository(private val dataSource: RawgDataSource) {
         }
     }
 
-    suspend fun getGameAchievements(gameId: Int): Result<RawgAchievementsResponse> {
+    suspend fun getAllGameAchievements(gameId: Int): Result<List<RawgAchievement>> {
         return try {
-            Result.success(dataSource.getGameAchievements(gameId))
+            val achievements = mutableListOf<RawgAchievement>()
+            var page = 1
+            var hasMore = true
+
+            while (hasMore) {
+                val response = dataSource.getGameAchievements(gameId, page)
+                achievements.addAll(response.results)
+                hasMore = response.next != null
+                page++
+            }
+
+            Result.success(achievements)
         } catch (e: Exception) {
             Result.failure(e)
         }
