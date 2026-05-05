@@ -103,7 +103,7 @@ data class RawgAchievement(
     val name: String,
     val description: String,
     val image: String?,
-    val percent: String?
+    val percent: String
 )
 
 @Serializable

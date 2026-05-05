@@ -61,8 +61,16 @@ fun GameDetailsScreen(
         uiState.game != null -> {
             GameDetailContent(
                 game = uiState.game!!,
+                uiState = uiState,
                 modifier = modifier,
-                onBack = onGoBack
+                onBack = onGoBack,
+                onStatusSelected = { gameDetailViewModel.onStatusSelected(it) },
+                onNotesChanged = { gameDetailViewModel.onNotesChanged(it) },
+                onPersonalRatingChanged = { gameDetailViewModel.onPersonalRatingChanged(it) },
+                onAchievementToggled = { id, completed ->
+                    gameDetailViewModel.onAchievementToggled(id, completed)
+                },
+                onSessionToggled = { gameDetailViewModel.onSessionToggled() }
             )
         }
     }
