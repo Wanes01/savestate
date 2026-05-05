@@ -31,7 +31,9 @@ class RawgDataSource(private val httpClient: HttpClient) {
         filters: SearchFilters = SearchFilters()
     ): RawgGameListResponse =
         httpClient.get("api/games") {
-            parameter("search", query)
+            if (query.isNotBlank()) {
+                parameter("search", query)
+            }
             parameter("page", page)
             parameter("page_size", pageSize)
             // filter by major stores to exclude mods and low-quality content

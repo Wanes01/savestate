@@ -1,5 +1,6 @@
 package com.example.savestate.ui.theme.screens.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.models.RawgGame
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.net.UnknownHostException
 
 /**
  * Represents the UI state of the search screen
@@ -95,13 +97,9 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
      */
     private suspend fun searchGames(reset: Boolean) {
         val query = _uiState.value.query
-        if (query.isBlank()) {
-            // resets the page when the search bar gets empty (maintains the filters)
-            _uiState.update { it.copy(games = emptyList(), currentPage = 1, hasMore = true, query = "") }
-            return
-        }
 
-        if (query.length < MIN_QUERY_LENGTH) {
+        // too short queries are not useful. Waits for the user to type more characters.
+        if (query.isNotBlank() && query.length < MIN_QUERY_LENGTH) {
             _uiState.update { it.copy(games = emptyList(), currentPage = 1, hasMore = true) }
             return
         }
@@ -133,6 +131,7 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
                     it.copy(
                         isLoading = false,
                         isLoadingMore = false,
+                        isNetworkError = error is UnknownHostException,
                         error = when (error) {
                             /*
                             It is common for users to type a few characters and then delete
@@ -140,6 +139,7 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
                             exception may be redundant
                              */
                             is CancellationException -> null
+                            is UnknownHostException -> "No internet connection"
                             else -> error.message
                         }
                     )
@@ -148,10 +148,10 @@ class SearchViewModel(private val rawgRepository: RawgRepository) : ViewModel() 
     }
 
     /**
-     * Sets an error caused by the internet connection
+     * Loads the games when the query is blank
      */
-    fun setNetworkError() {
-        _uiState.update { it.copy(error = "No internet connection", isNetworkError = true) }
+    fun loadDefaultGames() {
+        viewModelScope.launch { searchGames(reset = true) }
     }
 
     /**

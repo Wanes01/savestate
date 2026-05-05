@@ -1,7 +1,5 @@
 package com.example.savestate.ui.theme.screens.search
 
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,14 +25,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
 import com.example.savestate.ui.theme.components.search.FilterBottomSheet
 import com.example.savestate.ui.theme.components.search.GameCard
 import com.example.savestate.ui.theme.components.search.SearchBar
-import com.example.savestate.ui.theme.components.search.SearchEmptyPrompt
 import com.example.savestate.ui.theme.components.search.SearchErrorMessage
 import com.example.savestate.ui.theme.components.search.SearchNoResults
 import org.koin.androidx.compose.koinViewModel
@@ -48,28 +44,16 @@ fun SearchScreen(
     appViewModel: AppViewModel,
     onGameClick: (Int) -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        appViewModel.setTopBar(
-            title = "Find games"
-        )
-    }
     val searchViewModel: SearchViewModel = koinViewModel()
     val uiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     // to know what the user is seeing
     val listState = rememberLazyListState()
 
-    // check network connectivity when the screen is first show
-    val context = LocalContext.current
-    val isConnected = remember {
-        val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
-        connectivityManager
-            .getNetworkCapabilities(connectivityManager.activeNetwork)
-            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            ?: false
-    }
-
-    LaunchedEffect(isConnected) {
-        if (!isConnected) searchViewModel.setNetworkError()
+    LaunchedEffect(Unit) {
+        appViewModel.setTopBar(
+            title = "Find games"
+        )
+        searchViewModel.loadDefaultGames()
     }
 
     // triggers loadMore when the user is LOAD_MORE_OFFSET items from the end
@@ -119,10 +103,6 @@ fun SearchScreen(
                         error = uiState.error!!, // it enters here only if an error occurs
                         onDismiss = { searchViewModel.clearError() }
                     )
-                }
-
-                uiState.query.isBlank() -> {
-                    SearchEmptyPrompt()
                 }
 
                 // tells the user that the research did not produce results
