@@ -96,3 +96,19 @@ data class RawgCompany(
 data class RawgEsrbRating(
     val name: String
 )
+
+@Serializable
+data class RawgAchievement(
+    val id: Int,
+    val name: String,
+    val description: String,
+    val image: String?,
+    val percent: String?
+)
+
+@Serializable
+data class RawgAchievementsResponse(
+    val count: Int,
+    val next: String?,
+    val results: List<RawgAchievement>
+)

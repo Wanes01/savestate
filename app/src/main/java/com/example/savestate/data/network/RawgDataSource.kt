@@ -1,6 +1,7 @@
 package com.example.savestate.data.network
 
 import android.util.Log
+import com.example.savestate.data.models.RawgAchievementsResponse
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.models.RawgGameListResponse
 import com.example.savestate.data.models.RawgOrdering
@@ -61,4 +62,12 @@ class RawgDataSource(private val httpClient: HttpClient) {
      */
     suspend fun getGameDetail(gameId: Int): RawgGameDetail =
         httpClient.get("api/games/$gameId").body()
+
+    /**
+     * Fetches the list of achievements for a game.
+     *
+     * @param gameId the RAWG id of the game
+     */
+    suspend fun getGameAchievements(gameId: Int): RawgAchievementsResponse =
+        httpClient.get("api/games/$gameId/achievements").body()
 }

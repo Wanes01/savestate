@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
 }
 
@@ -83,6 +84,9 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.coil.compose) // async photos
     implementation(libs.ktor.client.core) // http requests
+    implementation(libs.androidx.room.ktx) // room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.junit)

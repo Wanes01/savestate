@@ -1,5 +1,6 @@
 package com.example.savestate.data.repositories
 
+import com.example.savestate.data.models.RawgAchievementsResponse
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.models.RawgGameListResponse
 import com.example.savestate.data.models.SearchFilters
@@ -22,6 +23,14 @@ class RawgRepository(private val dataSource: RawgDataSource) {
     suspend fun getGameDetail(gameId: Int): Result<RawgGameDetail> {
         return try {
             Result.success(dataSource.getGameDetail(gameId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getGameAchievements(gameId: Int): Result<RawgAchievementsResponse> {
+        return try {
+            Result.success(dataSource.getGameAchievements(gameId))
         } catch (e: Exception) {
             Result.failure(e)
         }
