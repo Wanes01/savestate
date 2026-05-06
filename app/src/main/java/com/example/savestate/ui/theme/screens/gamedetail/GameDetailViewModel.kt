@@ -9,9 +9,13 @@ import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -33,13 +37,32 @@ data class GameDetailUiState(
     val sessionStartTime: Long? = null
 )
 
+@OptIn(FlowPreview::class)
 class GameDetailViewModel(
     private val rawgRepository: RawgRepository,
     private val libraryRepository: LibraryRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val NOTE_EDIT_DEBOUNCE_DELAY_MS = 500L
+    }
+
+    private val _pendingNotes = MutableStateFlow<Pair<Int, String>?>(null)
     private val _uiState = MutableStateFlow(GameDetailUiState())
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _pendingNotes
+                .filterNotNull()
+                // waits some time before saving the note
+                // (waits for the user to stop typing)
+                .debounce(NOTE_EDIT_DEBOUNCE_DELAY_MS)
+                .collectLatest { (gameId, notes) ->
+                    libraryRepository.updateNotes(gameId, notes)
+                }
+        }
+    }
 
     /**
      * Fetches the details of a single game from RAWG.
@@ -133,7 +156,7 @@ class GameDetailViewModel(
 
     fun onNotesChanged(notes: String) {
         val gameId = _uiState.value.game?.id ?: return
-        viewModelScope.launch { libraryRepository.updateNotes(gameId, notes) }
+        _pendingNotes.value = gameId to notes
     }
 
     fun onPersonalRatingChanged(rating: Float) {
