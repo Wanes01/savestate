@@ -60,7 +60,7 @@ val appModule = module {
     // repository and viewmodel
     single { AuthRepository(get(), get()) }
     viewModel { AuthViewModel(get()) }
-    viewModel { AppViewModel(get(), get()) }
+    viewModel { AppViewModel(get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
     viewModel { GameDetailViewModel(get(), get()) }
     viewModel { LibraryViewModel(get()) }

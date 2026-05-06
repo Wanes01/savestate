@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savestate.data.database.SavestateDatabase
 import com.example.savestate.data.datastore.ThemePreferences
 import com.example.savestate.data.models.Theme
 import com.example.savestate.data.models.UserData
 import com.example.savestate.data.repositories.AuthRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +37,8 @@ data class NotificationSettings(
 
 class AppViewModel(
     private val themePreferences: ThemePreferences,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val database: SavestateDatabase
 ) : ViewModel() {
     private val _topBarState = MutableStateFlow(TopBarState())
     val topBarState: StateFlow<TopBarState> = _topBarState.asStateFlow()
@@ -74,6 +77,10 @@ class AppViewModel(
     }
 
     fun logout() {
-        viewModelScope.launch { authRepository.logout() }
+        viewModelScope.launch(Dispatchers.IO) {
+            // removes all table content before logging out
+            database.clearAllTables()
+            authRepository.logout()
+        }
     }
 }
