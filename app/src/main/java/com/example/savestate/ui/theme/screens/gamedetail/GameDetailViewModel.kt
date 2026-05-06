@@ -6,7 +6,12 @@ import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.database.entity.UserAchievementEntity
 import com.example.savestate.data.database.entity.UserGameEntity
 import com.example.savestate.data.models.GameStatus
+import com.example.savestate.data.models.RawgCompany
+import com.example.savestate.data.models.RawgEsrbRating
 import com.example.savestate.data.models.RawgGameDetail
+import com.example.savestate.data.models.RawgGenre
+import com.example.savestate.data.models.RawgPlatformInfo
+import com.example.savestate.data.models.RawgPlatformWrapper
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
 import kotlinx.coroutines.FlowPreview
@@ -65,63 +70,88 @@ class GameDetailViewModel(
     }
 
     /**
-     * Fetches the details of a single game from RAWG.
+     * Tries to load the game data from RAWG,
      * Called once when the screen is first shown.
      *
      * @param gameId the RAWG id of the game to fetch
      */
     fun loadGame(gameId: Int) {
-        // fetches the game form rawg
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            rawgRepository.getGameDetail(gameId)
-                .onSuccess { game ->
-                    _uiState.update { it.copy(game = game, isLoading = false) }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false, error = error.message) }
-                }
-        }
 
-        // observe the library state
-        viewModelScope.launch {
             libraryRepository.getGameById(gameId).collect { userGame ->
-                _uiState.update { it.copy(userGame = userGame) }
-            }
-        }
-
-        // observes achievements, minutes played and last session if the game is in the library
-        viewModelScope.launch {
-            libraryRepository.getGameById(gameId).collect { userGame ->
+                // the game is present in the library
                 if (userGame != null) {
-                    // achievements
+                    _uiState.update {
+                        it.copy(
+                            game = userGame.toRawgGameDetail(),
+                            userGame = userGame,
+                            isLoading = false
+                        )
+                    }
                     launch {
                         libraryRepository.getAchievementsByGame(gameId).collect { achievements ->
                             _uiState.update { it.copy(achievements = achievements) }
                         }
                     }
-                    // number of completed achievements
                     launch {
                         libraryRepository.getCompletedAchievementsCount(gameId).collect { count ->
                             _uiState.update { it.copy(completedAchievementsCount = count) }
                         }
                     }
-                    // total playtime in minutes
                     launch {
                         libraryRepository.getTotalMinutesByGame(gameId).collect { minutes ->
                             _uiState.update { it.copy(totalMinutesPlayed = minutes) }
                         }
                     }
-                    // the last registered gaming session
                     launch {
                         libraryRepository.getLastSessionByGame(gameId).collect { session ->
                             _uiState.update { it.copy(lastSession = session) }
                         }
                     }
+                } else {
+                    // the game is not present in the user's library.
+                    // Fetches the game data from rawg
+                    _uiState.update {
+                        it.copy(
+                            userGame = null,
+                            achievements = emptyList(),
+                            completedAchievementsCount = 0,
+                            totalMinutesPlayed = 0,
+                            lastSession = null
+                        )
+                    }
+                    rawgRepository.getGameDetail(gameId)
+                        .onSuccess { game ->
+                            _uiState.update { it.copy(game = game, isLoading = false) }
+                        }
+                        .onFailure { error ->
+                            _uiState.update { it.copy(isLoading = false, error = error.message) }
+                        }
                 }
             }
         }
     }
+
+    // converts the game entity in the database to the format expected by the UI
+    fun UserGameEntity.toRawgGameDetail(): RawgGameDetail = RawgGameDetail(
+        id = gameId,
+        name = name,
+        backgroundImage = backgroundImage,
+        rating = rating,
+        ratingsCount = ratingsCount,
+        genres = genres.split(",").filter { it.isNotBlank() }.map { RawgGenre(id = 0, name = it) },
+        platforms = platforms.split(",").filter { it.isNotBlank() }
+            .map { RawgPlatformWrapper(platform = RawgPlatformInfo(id = 0, name = it)) },
+        developers = developers.split(",").filter { it.isNotBlank() }.map { RawgCompany(id = 0, name = it) },
+        publishers = publishers.split(",").filter { it.isNotBlank() }.map { RawgCompany(id = 0, name = it) },
+        descriptionRaw = description,
+        website = website,
+        playtime = playtime,
+        metacritic = metacritic,
+        released = released,
+        esrbRating = esrbRating?.let { RawgEsrbRating(name = it) }
+    )
 
     // LIBRARY ACTIONS
 

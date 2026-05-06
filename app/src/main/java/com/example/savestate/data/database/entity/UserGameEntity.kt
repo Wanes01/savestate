@@ -14,7 +14,19 @@ data class UserGameEntity(
     val name: String,
     val backgroundImage: String?,
     val rating: Float,
-    val genres: String, // gets stored as a comma separated string
+    val ratingsCount: Int,
+    // genres, platforms, developers and publishers
+    // gets stored as comma separated strings
+    val genres: String,
+    val platforms: String,
+    val developers: String,
+    val publishers: String,
+    val description: String?,
+    val website: String?,
+    val playtime: Int,
+    val metacritic: Int?,
+    val released: String?,
+    val esrbRating: String?,
 
     // user data
     val status: GameStatus,
