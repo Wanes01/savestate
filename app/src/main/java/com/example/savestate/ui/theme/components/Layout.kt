@@ -3,6 +3,7 @@ package com.example.savestate.ui.theme.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -163,6 +164,32 @@ fun Section(
                     content()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DetailRow(
+    label: String,
+    value: @Composable () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    HorizontalDivider()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(0.4f)
+        )
+        Box(modifier = Modifier.weight(0.6f), contentAlignment = Alignment.CenterEnd) {
+            value()
         }
     }
 }
