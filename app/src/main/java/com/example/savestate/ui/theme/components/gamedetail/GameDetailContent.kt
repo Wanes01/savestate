@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -140,35 +141,72 @@ fun GameDetailContent(
                         onPersonalRatingChanged = onPersonalRatingChanged,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // game achievements (if any)
-                if (uiState.achievements.isNotEmpty()) {
-                    item {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        AchievementsSectionHeader(
-                            expanded = achievementsExpanded,
-                            completedCount = uiState.completedAchievementsCount,
-                            totalCount = uiState.achievements.size,
-                            onToggle = { achievementsExpanded = !achievementsExpanded },
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
+                // game achievements...
+                when {
+                    // it's fetching the achievements
+                    uiState.isLoadingAchievements -> {
+                        item {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = "Loading achievements, please wait...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
 
-                    if (achievementsExpanded) {
-                        items(
-                            items = uiState.achievements,
-                            key = { it.achievementId }
-                        ) { achievement ->
-                            AchievementRow(
-                                achievement = achievement,
-                                onToggled = { onAchievementToggled(achievement.achievementId, it) },
+                    // achievements available. Shows them to the user
+                    uiState.achievements.isNotEmpty() -> {
+                        item {
+                            AchievementsSectionHeader(
+                                expanded = achievementsExpanded,
+                                completedCount = uiState.completedAchievementsCount,
+                                totalCount = uiState.achievements.size,
+                                onToggle = { achievementsExpanded = !achievementsExpanded },
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
                         }
 
-                        // Bottom spacing after last achievement
-                        item { Spacer(modifier = Modifier.height(4.dp)) }
+                        if (achievementsExpanded) {
+                            items(
+                                items = uiState.achievements,
+                                key = { it.achievementId }
+                            ) { achievement ->
+                                AchievementRow(
+                                    achievement = achievement,
+                                    onToggled = { onAchievementToggled(achievement.achievementId, it) },
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(4.dp)) }
+                        }
+                    }
+
+                    // achievement data unavailable
+                    else -> {
+                        item {
+                            Text(
+                                text = "Achievement data is not available for this game",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
                     }
                 }
             }

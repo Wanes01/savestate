@@ -28,6 +28,8 @@ data class GameDetailUiState(
     // base state
     val game: RawgGameDetail? = null,
     val isLoading: Boolean = true,
+    val isLoadingAchievements: Boolean = false,
+    val achievementsUnavailable: Boolean = false,
     val error: String? = null,
 
     // library state
@@ -70,8 +72,9 @@ class GameDetailViewModel(
     }
 
     /**
-     * Tries to load the game data from RAWG,
-     * Called once when the screen is first shown.
+     * Tries to load the specified game by the local database.
+     * Fallbacks to RAWG repository to make the request
+     * (used if the game is not in the user's library)
      *
      * @param gameId the RAWG id of the game to fetch
      */
@@ -178,7 +181,11 @@ class GameDetailViewModel(
                 }
                 // adds the game to the library
                 else -> {
+                    _uiState.update {
+                        it.copy(isLoadingAchievements = true)
+                    }
                     libraryRepository.addGame(game, status)
+                    _uiState.update { it.copy(isLoadingAchievements = false) }
                 }
             }
         }
