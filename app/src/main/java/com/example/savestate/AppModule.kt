@@ -13,6 +13,7 @@ import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
 import com.example.savestate.ui.theme.screens.auth.AuthViewModel
 import com.example.savestate.ui.theme.screens.gamedetail.GameDetailViewModel
+import com.example.savestate.ui.theme.screens.library.LibraryViewModel
 import com.example.savestate.ui.theme.screens.search.SearchViewModel
 import com.google.firebase.auth.FirebaseAuth
 import org.koin.core.module.dsl.viewModel
@@ -62,4 +63,5 @@ val appModule = module {
     viewModel { AppViewModel(get(), get()) }
     viewModel { SearchViewModel(get()) }
     viewModel { GameDetailViewModel(get(), get()) }
+    viewModel { LibraryViewModel(get()) }
 }

@@ -10,6 +10,7 @@ data class UserGameEntity(
     val gameId: Int,
 
     // game info cached from RAWG to avoid re-fetching for the library screen
+    // (to make the game details available offline)
     val name: String,
     val backgroundImage: String?,
     val rating: Float,

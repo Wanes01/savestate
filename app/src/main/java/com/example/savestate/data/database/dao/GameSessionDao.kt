@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.savestate.data.database.entity.GameSessionEntity
+import com.example.savestate.data.models.GamePlaytime
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -49,4 +50,11 @@ interface GameSessionDao {
      */
     @Delete
     suspend fun deleteSession(session: GameSessionEntity)
+
+    @Query("""
+        SELECT gameId, SUM(durationMinutes) as totalMinutes
+        FROM game_sessions
+        GROUP BY gameId
+    """)
+    fun getTotalMinutesByGame(): Flow<List<GamePlaytime>>
 }

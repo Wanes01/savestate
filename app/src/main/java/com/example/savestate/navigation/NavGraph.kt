@@ -22,6 +22,7 @@ import com.example.savestate.AppViewModel
 import com.example.savestate.ui.theme.screens.auth.AuthScreen
 import com.example.savestate.ui.theme.screens.auth.AuthViewModel
 import com.example.savestate.ui.theme.screens.gamedetail.GameDetailsScreen
+import com.example.savestate.ui.theme.screens.library.LibraryScreen
 import com.example.savestate.ui.theme.screens.profile.ProfileScreen
 import com.example.savestate.ui.theme.screens.search.SearchScreen
 import kotlinx.serialization.Serializable
@@ -80,7 +81,13 @@ fun NavGraph(
             }
         }
         composable<NavigationRoute.Library> {
-            Text("Libreria utente")
+            LibraryScreen(
+                modifier,
+                appViewModel,
+                onGameClick = { gameId ->
+                    navController.navigate(NavigationRoute.GameDetails(gameId))
+                }
+            )
         }
         composable<NavigationRoute.Search> {
             SearchScreen(

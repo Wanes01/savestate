@@ -6,6 +6,8 @@ import com.example.savestate.data.database.dao.UserGameDao
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.database.entity.UserAchievementEntity
 import com.example.savestate.data.database.entity.UserGameEntity
+import com.example.savestate.data.models.AchievementProgress
+import com.example.savestate.data.models.GamePlaytime
 import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.models.RawgGameDetail
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +28,9 @@ class LibraryRepository(
      * Returns whether a game is in the user's library as a flow
      */
     fun getGameById(gameId: Int): Flow<UserGameEntity?> = userGameDao.getGameById(gameId)
+
+    fun getPlaytimeByGame(): Flow<List<GamePlaytime>> =
+        gameSessionDao.getTotalMinutesByGame()
 
     /**
      * Adds a game to the user's library and fetches its achievements from RAWG.
@@ -94,6 +99,9 @@ class LibraryRepository(
 
     fun getCompletedAchievementsCount(gameId: Int): Flow<Int> =
         userAchievementDao.getCompletedCount(gameId)
+
+    fun getAchievementProgress(): Flow<List<AchievementProgress>> =
+        userAchievementDao.getAchievementProgressByGame()
 
     suspend fun updateAchievementCompleted(achievementId: Int, isCompleted: Boolean) =
         userAchievementDao.updateAchievementCompleted(achievementId, isCompleted)
