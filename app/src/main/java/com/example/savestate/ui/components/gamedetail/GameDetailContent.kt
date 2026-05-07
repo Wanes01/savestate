@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.ui.screens.gamedetail.GameDetailUiState
+
 val StarYellow = Color(0xFFFFD700)
 
 @Composable
@@ -127,7 +128,10 @@ fun GameDetailContent(
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
                             ) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     text = "Loading achievements, please wait...",
@@ -157,7 +161,12 @@ fun GameDetailContent(
                             ) { achievement ->
                                 AchievementRow(
                                     achievement = achievement,
-                                    onToggled = { onAchievementToggled(achievement.achievementId, it) },
+                                    onToggled = {
+                                        onAchievementToggled(
+                                            achievement.achievementId,
+                                            it
+                                        )
+                                    },
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                             }

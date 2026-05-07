@@ -324,41 +324,41 @@ private val NintendoDarkScheme = darkColorScheme(
     surfaceContainerHighest = NintendoColors.surfaceContainerHighestDark,
 )
 
-    @Composable
-    fun SavestateTheme(
-        theme: Theme,
-        content: @Composable () -> Unit
-    ) {
-        val darkTheme = when (theme) {
-            Theme.SYSTEM -> isSystemInDarkTheme()
-            Theme.LIGHT -> false
-            Theme.DARK -> true
-            Theme.PLAYSTATION, Theme.XBOX, Theme.NINTENDO -> isSystemInDarkTheme()
-        }
-
-        val colorScheme = when (theme) {
-            Theme.SYSTEM -> if (darkTheme) DarkColorScheme else LightColorScheme
-            Theme.LIGHT -> LightColorScheme
-            Theme.DARK -> DarkColorScheme
-            Theme.PLAYSTATION -> if (darkTheme) PlaystationDarkScheme else PlaystationLightScheme
-            Theme.XBOX -> if (darkTheme) XboxDarkScheme else XboxLightScheme
-            Theme.NINTENDO -> if (darkTheme) NintendoDarkScheme else NintendoLightScheme
-        }
-
-        val view = LocalView.current
-        if (!view.isInEditMode) {
-            SideEffect {
-                val window = (view.context as Activity).window
-                window.statusBarColor = colorScheme.primaryContainer.toArgb()
-                WindowCompat
-                    .getInsetsController(window, view)
-                    .isAppearanceLightStatusBars = !darkTheme
-            }
-        }
-
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = Typography,
-            content = content
-        )
+@Composable
+fun SavestateTheme(
+    theme: Theme,
+    content: @Composable () -> Unit
+) {
+    val darkTheme = when (theme) {
+        Theme.SYSTEM -> isSystemInDarkTheme()
+        Theme.LIGHT -> false
+        Theme.DARK -> true
+        Theme.PLAYSTATION, Theme.XBOX, Theme.NINTENDO -> isSystemInDarkTheme()
     }
+
+    val colorScheme = when (theme) {
+        Theme.SYSTEM -> if (darkTheme) DarkColorScheme else LightColorScheme
+        Theme.LIGHT -> LightColorScheme
+        Theme.DARK -> DarkColorScheme
+        Theme.PLAYSTATION -> if (darkTheme) PlaystationDarkScheme else PlaystationLightScheme
+        Theme.XBOX -> if (darkTheme) XboxDarkScheme else XboxLightScheme
+        Theme.NINTENDO -> if (darkTheme) NintendoDarkScheme else NintendoLightScheme
+    }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primaryContainer.toArgb()
+            WindowCompat
+                .getInsetsController(window, view)
+                .isAppearanceLightStatusBars = !darkTheme
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}

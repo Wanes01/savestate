@@ -1,6 +1,5 @@
 package com.example.savestate.ui.screens.gamedetail
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.entity.GameSessionEntity
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -195,13 +193,14 @@ class GameDetailViewModel(
                     // removes completed achievement xps
                     val achievementsXp =
                         libraryRepository.getAchievementsByGame(currentUserGame.gameId)
-                        .first()
-                        .filter { it.isCompleted }
-                        .sumOf {
-                            XpSystem.xpForAchievement(
-                                it.percent,
-                                1)
-                        }
+                            .first()
+                            .filter { it.isCompleted }
+                            .sumOf {
+                                XpSystem.xpForAchievement(
+                                    it.percent,
+                                    1
+                                )
+                            }
                     if (achievementsXp > 0) userPreferences.addXp(-achievementsXp)
 
                     // removes the sessions playtime xps

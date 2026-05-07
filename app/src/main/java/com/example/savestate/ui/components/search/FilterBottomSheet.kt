@@ -68,7 +68,7 @@ fun FilterBottomSheet(
                             selected = genre in selectedGenres,
                             onClick = {
                                 selectedGenres = if (genre in selectedGenres) selectedGenres - genre
-                                    else selectedGenres + genre
+                                else selectedGenres + genre
                             },
                             label = { Text(genre.displayName) }
                         )
@@ -83,7 +83,8 @@ fun FilterBottomSheet(
                         FilterChip(
                             selected = platform in selectedPlatforms,
                             onClick = {
-                                selectedPlatforms = if (platform in selectedPlatforms) selectedPlatforms - platform
+                                selectedPlatforms =
+                                    if (platform in selectedPlatforms) selectedPlatforms - platform
                                     else selectedPlatforms + platform
                             },
                             label = { Text(platform.displayName) }
@@ -93,7 +94,13 @@ fun FilterBottomSheet(
             }
 
             // min rating
-            FilterSection(title = "Min metacritic rating: ${if (minRating == 0f) "Any" else "%.1f".format(minRating)}") {
+            FilterSection(
+                title = "Min metacritic rating: ${
+                    if (minRating == 0f) "Any" else "%.1f".format(
+                        minRating
+                    )
+                }"
+            ) {
                 Slider(
                     value = minRating,
                     onValueChange = { minRating = it },

@@ -28,6 +28,7 @@ import coil.compose.AsyncImage
 import com.example.savestate.data.models.RawgGame
 
 const val MAX_GENRES_TO_SHOW = 3
+
 @Composable
 fun GameCard(
     game: RawgGame,

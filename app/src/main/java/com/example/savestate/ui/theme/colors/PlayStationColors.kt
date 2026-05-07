@@ -1,4 +1,5 @@
 package com.example.savestate.ui.theme.colors
+
 import androidx.compose.ui.graphics.Color
 
 internal object PlayStationColors {

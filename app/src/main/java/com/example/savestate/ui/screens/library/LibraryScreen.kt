@@ -128,9 +128,9 @@ private fun LibraryEmptyState(filter: GameStatus?) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = if (filter == null)
-                        "Your library is empty"
-                    else
-                        "No games in this category",
+                    "Your library is empty"
+                else
+                    "No games in this category",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -1,6 +1,5 @@
 package com.example.savestate.data.datastore
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -37,7 +36,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
     }
 
     // current user xp data
-    val userXp : Flow<UserXp> = dataStore.data.map { prefs ->
+    val userXp: Flow<UserXp> = dataStore.data.map { prefs ->
         UserXp(
             xp = prefs[XP] ?: 0,
             dayStreak = prefs[DAY_STREAK] ?: 0

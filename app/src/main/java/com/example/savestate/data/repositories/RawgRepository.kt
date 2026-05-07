@@ -1,7 +1,6 @@
 package com.example.savestate.data.repositories
 
 import com.example.savestate.data.models.RawgAchievement
-import com.example.savestate.data.models.RawgAchievementsResponse
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.models.RawgGameListResponse
 import com.example.savestate.data.models.SearchFilters

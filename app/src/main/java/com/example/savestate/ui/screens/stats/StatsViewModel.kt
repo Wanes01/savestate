@@ -2,12 +2,10 @@ package com.example.savestate.ui.screens.stats
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.models.GameSessionWithName
 import com.example.savestate.data.repositories.StatsRepository
 import com.example.savestate.domain.XpSystem
-import io.ktor.util.Hash.combine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -79,7 +78,11 @@ class AppViewModel(
             initialValue = false
         )
 
-    fun setTopBar(visible: Boolean = true, title: String = "", actions: (@Composable RowScope.() -> Unit)? = null) {
+    fun setTopBar(
+        visible: Boolean = true,
+        title: String = "",
+        actions: (@Composable RowScope.() -> Unit)? = null
+    ) {
         _topBarState.update { TopBarState(title, actions, visible) }
     }
 

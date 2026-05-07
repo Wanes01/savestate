@@ -45,14 +45,20 @@ interface UserGameDao {
     /**
      * Updates the status of a game and the relevant timestamps.
      */
-    @Query("""
+    @Query(
+        """
         UPDATE user_games SET 
             status = :status,
             startedAt = CASE WHEN :status = 'IN_PROGRESS' THEN :now ELSE startedAt END,
             completedAt = CASE WHEN :status = 'COMPLETED' THEN :now ELSE completedAt END
         WHERE gameId = :gameId
-    """)
-    suspend fun updateStatus(gameId: Int, status: GameStatus, now: Long = System.currentTimeMillis())
+    """
+    )
+    suspend fun updateStatus(
+        gameId: Int,
+        status: GameStatus,
+        now: Long = System.currentTimeMillis()
+    )
 
     /**
      * Updates the user's personal notes for a game.

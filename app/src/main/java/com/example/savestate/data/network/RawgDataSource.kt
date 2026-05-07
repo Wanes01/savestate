@@ -1,6 +1,5 @@
 package com.example.savestate.data.network
 
-import android.util.Log
 import com.example.savestate.data.models.RawgAchievementsResponse
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.data.models.RawgGameListResponse

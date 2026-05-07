@@ -30,17 +30,23 @@ fun SummaryRow(state: StatsUiState) {
         StatCard(
             value = "${state.gamesCompleted}",
             label = "games\ncompleted",
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         )
         StatCard(
             value = "${state.totalHoursPlayed}h",
             label = "total\nplay time",
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         )
         StatCard(
             value = "${state.totalAchievements}",
             label = "achievements",
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         )
     }
 }

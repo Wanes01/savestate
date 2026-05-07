@@ -8,7 +8,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,13 +28,20 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
 // application screen destinations
-@Serializable sealed interface NavigationRoute {
-    @Serializable data object Auth : NavigationRoute
-    @Serializable data object Library : NavigationRoute
-    @Serializable data object Search : NavigationRoute
-    @Serializable data object Stats : NavigationRoute
-    @Serializable data object Profile : NavigationRoute
-    @Serializable data class GameDetails(val gameId: Int) : NavigationRoute
+@Serializable
+sealed interface NavigationRoute {
+    @Serializable
+    data object Auth : NavigationRoute
+    @Serializable
+    data object Library : NavigationRoute
+    @Serializable
+    data object Search : NavigationRoute
+    @Serializable
+    data object Stats : NavigationRoute
+    @Serializable
+    data object Profile : NavigationRoute
+    @Serializable
+    data class GameDetails(val gameId: Int) : NavigationRoute
 }
 
 @Composable

@@ -41,10 +41,12 @@ interface UserAchievementDao {
     @Query("DELETE FROM user_achievements WHERE gameId = :gameId")
     suspend fun deleteAchievementsByGame(gameId: Int)
 
-    @Query("""
+    @Query(
+        """
         SELECT gameId, COUNT(*) as total, SUM(CASE WHEN isCompleted = 1 THEN 1 ELSE 0 END) as completed
         FROM user_achievements
         GROUP BY gameId
-    """)
+    """
+    )
     fun getAchievementProgressByGame(): Flow<List<AchievementProgress>>
 }

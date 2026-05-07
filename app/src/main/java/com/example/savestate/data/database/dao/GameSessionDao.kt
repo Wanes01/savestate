@@ -27,13 +27,15 @@ interface GameSessionDao {
     /**
      * Returns all sessions in a date range including the game name.
      */
-    @Query("""
+    @Query(
+        """
         SELECT s.*, g.name as gameName
         FROM game_sessions s
         INNER JOIN user_games g ON s.gameId = g.gameId
         WHERE s.startTime >= :from AND s.startTime <= :to
         ORDER BY s.startTime DESC
-    """)
+    """
+    )
     fun getSessionsWithNameInRange(from: Long, to: Long): Flow<List<GameSessionWithName>>
 
     /**
@@ -51,11 +53,13 @@ interface GameSessionDao {
     /**
      * Returns all sessions within a date range (useful for chart visualization).
      */
-    @Query("""
+    @Query(
+        """
         SELECT * FROM game_sessions 
         WHERE startTime >= :from AND startTime <= :to 
         ORDER BY startTime ASC
-    """)
+    """
+    )
     fun getSessionsInRange(from: Long, to: Long): Flow<List<GameSessionEntity>>
 
     /**
@@ -64,10 +68,12 @@ interface GameSessionDao {
     @Delete
     suspend fun deleteSession(session: GameSessionEntity)
 
-    @Query("""
+    @Query(
+        """
         SELECT gameId, SUM(durationMinutes) as totalMinutes
         FROM game_sessions
         GROUP BY gameId
-    """)
+    """
+    )
     fun getTotalMinutesByGame(): Flow<List<GamePlaytime>>
 }

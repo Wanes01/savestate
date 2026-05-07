@@ -1,13 +1,15 @@
 package com.example.savestate.data.repositories
 
 import android.content.Context
-import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import com.example.savestate.R
 import com.example.savestate.data.datastore.UserPreferences
+import com.example.savestate.data.models.UserData
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -17,9 +19,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
-import com.example.savestate.R
-import com.example.savestate.data.models.UserData
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 
 class AuthRepository(
     private val userPreferences: UserPreferences,

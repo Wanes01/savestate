@@ -24,7 +24,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
-import kotlin.collections.forEach
 
 @Composable
 fun WeeklySessionsList(sessions: List<GameSessionWithName>) {
@@ -59,7 +58,10 @@ private fun SessionRow(session: GameSessionWithName) {
         when (date) {
             LocalDate.now() -> "Today"
             LocalDate.now().minusDays(1) -> "Yesterday"
-            else -> date.dayOfWeek.getDisplayName(TextStyle.FULL, LocalLocale.current.platformLocale)
+            else -> date.dayOfWeek.getDisplayName(
+                TextStyle.FULL,
+                LocalLocale.current.platformLocale
+            )
         }
     }
 

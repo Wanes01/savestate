@@ -29,10 +29,6 @@ import com.example.savestate.ui.theme.colors.NintendoColors
 import com.example.savestate.ui.theme.colors.PlayStationColors
 import com.example.savestate.ui.theme.colors.SystemColors
 import com.example.savestate.ui.theme.colors.XboxColors
-import kotlin.collections.chunked
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.forEach
 
 @Composable
 fun ThemeSelector(
@@ -124,15 +120,18 @@ private fun ThemeExample(theme: Theme) {
     val darkMode = isSystemInDarkTheme()
     val (colorA, colorB) = when (theme) {
         Theme.SYSTEM -> if (darkMode) SystemColors.primaryDark to SystemColors.onPrimaryDark
-            else SystemColors.primaryLight to SystemColors.onPrimaryLight
+        else SystemColors.primaryLight to SystemColors.onPrimaryLight
+
         Theme.DARK -> SystemColors.primaryDark to SystemColors.onPrimaryDark
         Theme.LIGHT -> SystemColors.primaryLight to SystemColors.onPrimaryLight
         Theme.PLAYSTATION -> if (darkMode) PlayStationColors.primaryDark to PlayStationColors.onPrimaryDark
-            else PlayStationColors.primaryLight to PlayStationColors.onPrimaryLight
+        else PlayStationColors.primaryLight to PlayStationColors.onPrimaryLight
+
         Theme.XBOX -> if (darkMode) XboxColors.primaryDark to XboxColors.onPrimaryDark
-            else XboxColors.primaryLight to XboxColors.onPrimaryLight
+        else XboxColors.primaryLight to XboxColors.onPrimaryLight
+
         Theme.NINTENDO -> if (darkMode) NintendoColors.primaryDark to NintendoColors.onPrimaryDark
-            else NintendoColors.primaryLight to NintendoColors.onPrimaryLight
+        else NintendoColors.primaryLight to NintendoColors.onPrimaryLight
     }
 
     Box(

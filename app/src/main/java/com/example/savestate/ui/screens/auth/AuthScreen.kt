@@ -33,8 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,10 +51,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.R
 import com.example.savestate.ui.components.AppButton
 import com.example.savestate.ui.components.GoogleButton
 import com.example.savestate.ui.components.TextDivider
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AuthScreen(
@@ -102,8 +102,10 @@ fun AuthScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primary.copy(
-                        alpha = if (isDarkTheme) 0.35f else 0.15f)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(
+                            alpha = if (isDarkTheme) 0.35f else 0.15f
+                        )
                     )
             )
             // emulates a fade on the image with a gradient overlay
