@@ -11,6 +11,7 @@ import com.example.savestate.data.models.UserData
 import com.example.savestate.data.models.UserXp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 
 class UserPreferences(private val dataStore: DataStore<Preferences>) {
     companion object {
@@ -21,6 +22,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val PHOTO_URL = stringPreferencesKey("photo_url")
         val XP = intPreferencesKey("xp")
         val DAY_STREAK = intPreferencesKey("day_streak")
+        val LAST_SESSION_DATE = stringPreferencesKey("last_session_date")
     }
 
     // the current user data
@@ -75,6 +77,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs.remove(PHOTO_URL)
             prefs.remove(XP)
             prefs.remove(DAY_STREAK)
+            prefs.remove(LAST_SESSION_DATE)
         }
     }
 
@@ -90,5 +93,36 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-     // TODO: RESET AND INCREMENT STREAK
+    /**
+     * Updates the day streak session value based
+     * on the last time it was updated.
+     * Calling this functions multiple times will
+     * produce no side effects.
+     */
+    suspend fun updateStreak() {
+        dataStore.edit { prefs ->
+            val today = LocalDate.now()
+            val lastSessionStr = prefs[LAST_SESSION_DATE]
+            val lastSession = lastSessionStr?.let { LocalDate.parse(it) }
+
+            when (lastSession) {
+                // first session at all
+                null -> {
+                    prefs[DAY_STREAK] = 1
+                }
+                // session already registered today, does nothing
+                today -> return@edit
+                // last session was yesterday, increases the streak
+                today.minusDays(1) -> {
+                    prefs[DAY_STREAK] = (prefs[DAY_STREAK] ?: 0) + 1
+                }
+                // the gap is longer than a day. Resets the streak.
+                else -> {
+                    prefs[DAY_STREAK] = 1
+                }
+            }
+
+            prefs[LAST_SESSION_DATE] = today.toString()
+        }
+    }
 }

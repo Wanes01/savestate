@@ -281,6 +281,8 @@ class GameDetailViewModel(
     /**
      * Starts/stops the game session timer.
      * When stopped, saves the session to the database.
+     * Updates the current day streak when a new
+     * session gets registered.
      *
      * Adds xps based on session length
      */
@@ -306,6 +308,9 @@ class GameDetailViewModel(
                             durationMinutes = durationMinutes
                         )
                     )
+
+                    // updates the day streak
+                    userPreferences.updateStreak()
 
                     // adds xps
                     val userXpData = userPreferences.userXp.first()
