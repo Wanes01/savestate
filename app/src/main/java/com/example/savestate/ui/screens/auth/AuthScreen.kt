@@ -1,0 +1,298 @@
+package com.example.savestate.ui.screens.auth
+
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.example.savestate.R
+import com.example.savestate.ui.components.AppButton
+import com.example.savestate.ui.components.GoogleButton
+import com.example.savestate.ui.components.TextDivider
+
+@Composable
+fun AuthScreen(
+    modifier: Modifier,
+    wasLoginSuccessful: Boolean,
+    onLoginSuccess: () -> Unit
+) {
+    val viewModel: AuthViewModel = koinViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isDarkTheme = isSystemInDarkTheme()
+
+    var isLoginMode by rememberSaveable { mutableStateOf(true) }
+    var email by rememberSaveable { mutableStateOf("") }
+
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    // navigate on successful login
+    LaunchedEffect(wasLoginSuccessful) {
+        if (wasLoginSuccessful) onLoginSuccess()
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        // logo and blurred wallpaper
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+        ) {
+            // background image
+            Image(
+                painter = painterResource(id = R.drawable.auth_background),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            // semi-transparent overlay to maintain primary color
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primary.copy(
+                        alpha = if (isDarkTheme) 0.35f else 0.15f)
+                    )
+            )
+            // emulates a fade on the image with a gradient overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0.0f to MaterialTheme.colorScheme.surface.copy(alpha = if (isDarkTheme) 0.2f else 0.0f),
+                                0.5f to MaterialTheme.colorScheme.surface.copy(alpha = if (isDarkTheme) 0.7f else 0.3f),
+                                0.9f to MaterialTheme.colorScheme.surface
+                            )
+                        )
+                    )
+            )
+
+            // logo
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.logo_auth),
+                contentDescription = "Savestate login/register page",
+                tint = if (isDarkTheme) Color.White else Color.Black,
+                modifier = Modifier
+                    .size(190.dp)
+                    .align(Alignment.Center)
+            )
+        }
+
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .offset(y = (-32).dp)
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            // login / signup tabs
+            TabRow(
+                selectedTabIndex = if (isLoginMode) 0 else 1
+            ) {
+                AuthTab(
+                    selected = isLoginMode,
+                    onClick = { isLoginMode = true },
+                    text = "Sign in"
+                )
+                AuthTab(
+                    selected = !isLoginMode,
+                    onClick = { isLoginMode = false },
+                    text = "Sign up"
+                )
+            }
+
+            // input fields form
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.animateContentSize(
+                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                )
+            ) {
+                // email
+                AuthFormInputField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = "Email",
+                    keyboardType = KeyboardType.Email
+                )
+                // password
+                AuthFormInputField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Password",
+                    isPassword = true,
+                    isPasswordVisible = passwordVisible,
+                    keyboardType = KeyboardType.Password,
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Filled.Visibility
+                        else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = image,
+                                contentDescription = "Toggle password visibility"
+                            )
+                        }
+                    },
+                )
+                // password confirmation
+                if (!isLoginMode) {
+                    AuthFormInputField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        keyboardType = KeyboardType.Password,
+                        label = "Confirm Password",
+                        isPassword = true,
+                        isPasswordVisible = passwordVisible,
+                    )
+                }
+            }
+
+            // error message
+            uiState.error?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            // native log in / register button
+            AppButton(
+                onClick = {
+                    viewModel.clearError()
+                    if (isLoginMode) {
+                        viewModel.login(email, password)
+                    } else {
+                        viewModel.register(email, password, confirmPassword)
+                    }
+                },
+                enabled = !uiState.isLoading
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = if (isLoginMode) "Sign in" else "Create account",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+            TextDivider("Or continue with...")
+
+            val context = LocalContext.current
+            GoogleButton(
+                text = "Sign in with Google",
+                enabled = !uiState.isLoading,
+                onClick = {
+                    viewModel.clearError()
+                    viewModel.loginWithGoogle(context)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun AuthTab(
+    selected: Boolean,
+    onClick: () -> Unit,
+    text: String
+) {
+    Tab(
+        selected = selected,
+        onClick = onClick,
+        text = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleLarge
+            )
+        }
+    )
+}
+
+@Composable
+fun AuthFormInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isPassword: Boolean = false,
+    isPasswordVisible: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Unspecified,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        visualTransformation =
+            if (isPassword && !isPasswordVisible) PasswordVisualTransformation()
+            else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        trailingIcon = trailingIcon,
+    )
+}

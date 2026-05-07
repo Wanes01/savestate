@@ -10,14 +10,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.savestate.ui.theme.components.SavestateBottomNavBar
+import com.example.savestate.ui.components.SavestateBottomNavBar
 import com.example.savestate.navigation.NavGraph
-import com.example.savestate.navigation.NavigationRoute
 import com.example.savestate.ui.theme.SavestateTheme
-import com.example.savestate.ui.theme.components.BottomNavBarDestination
-import com.example.savestate.ui.theme.components.SavestateTopBar
+import com.example.savestate.ui.components.SavestateTopBar
 import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {

@@ -19,12 +19,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.savestate.AppViewModel
-import com.example.savestate.ui.theme.screens.auth.AuthScreen
-import com.example.savestate.ui.theme.screens.auth.AuthViewModel
-import com.example.savestate.ui.theme.screens.gamedetail.GameDetailsScreen
-import com.example.savestate.ui.theme.screens.library.LibraryScreen
-import com.example.savestate.ui.theme.screens.profile.ProfileScreen
-import com.example.savestate.ui.theme.screens.search.SearchScreen
+import com.example.savestate.ui.screens.auth.AuthScreen
+import com.example.savestate.ui.screens.gamedetail.GameDetailsScreen
+import com.example.savestate.ui.screens.library.LibraryScreen
+import com.example.savestate.ui.screens.profile.ProfileScreen
+import com.example.savestate.ui.screens.search.SearchScreen
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
