@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.savestate.data.models.UserData
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +17,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val DISPLAY_NAME = stringPreferencesKey("display_name")
         val EMAIL = stringPreferencesKey("email")
         val PHOTO_URL = stringPreferencesKey("photo_url")
+        val XP = intPreferencesKey("xp")
+        val DAY_STREAK = intPreferencesKey("day_streak")
     }
 
     // the current user data
@@ -25,7 +28,9 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             userId = prefs[USER_ID] ?: "",
             displayName = prefs[DISPLAY_NAME] ?: "",
             email = prefs[EMAIL] ?: "",
-            photoUrl = prefs[PHOTO_URL]
+            photoUrl = prefs[PHOTO_URL],
+            xp = prefs[XP] ?: 0,
+            dayStreak = prefs[DAY_STREAK] ?: 0
         )
     }
 
@@ -40,6 +45,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs[DISPLAY_NAME] = userData.displayName
             prefs[EMAIL] = userData.email
             userData.photoUrl?.let { prefs[PHOTO_URL] = it }
+            prefs[XP] = userData.xp
+            prefs[DAY_STREAK] = userData.dayStreak
         }
     }
 
@@ -53,6 +60,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs.remove(DISPLAY_NAME)
             prefs.remove(EMAIL)
             prefs.remove(PHOTO_URL)
+            prefs.remove(XP)
+            prefs.remove(DAY_STREAK)
         }
     }
 }
