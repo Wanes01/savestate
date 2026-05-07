@@ -11,10 +11,12 @@ import com.example.savestate.data.network.rawgHttpClient
 import com.example.savestate.data.repositories.AuthRepository
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
+import com.example.savestate.data.repositories.StatsRepository
 import com.example.savestate.ui.screens.auth.AuthViewModel
 import com.example.savestate.ui.screens.gamedetail.GameDetailViewModel
 import com.example.savestate.ui.screens.library.LibraryViewModel
 import com.example.savestate.ui.screens.search.SearchViewModel
+import com.example.savestate.ui.screens.stats.StatsViewModel
 import com.google.firebase.auth.FirebaseAuth
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -52,6 +54,9 @@ val appModule = module {
         )
     }
 
+    // stats
+    single { StatsRepository(get(), get(), get()) }
+
     // daos
     single { get<SavestateDatabase>().userGameDao() }
     single { get<SavestateDatabase>().userAchievementDao() }
@@ -64,4 +69,5 @@ val appModule = module {
     viewModel { SearchViewModel(get()) }
     viewModel { GameDetailViewModel(get(), get(), get()) }
     viewModel { LibraryViewModel(get()) }
+    viewModel { StatsViewModel(get(), get()) }
 }

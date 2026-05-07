@@ -21,9 +21,6 @@ class LibraryRepository(
 
     fun getAllGames(): Flow<List<UserGameEntity>> = userGameDao.getAllGames()
 
-    fun getGamesByStatus(status: GameStatus): Flow<List<UserGameEntity>> =
-        userGameDao.getGamesByStatus(status)
-
     /**
      * Returns whether a game is in the user's library as a flow
      */
@@ -128,9 +125,9 @@ class LibraryRepository(
     fun getLastSessionByGame(gameId: Int): Flow<GameSessionEntity?> =
         gameSessionDao.getLastSessionByGame(gameId)
 
+    fun getSessionsByGame(gameId: Int): Flow<List<GameSessionEntity>> =
+        gameSessionDao.getSessionsByGame(gameId)
+
     fun getSessionsInRange(from: Long, to: Long): Flow<List<GameSessionEntity>> =
         gameSessionDao.getSessionsInRange(from, to)
-
-    suspend fun deleteSession(session: GameSessionEntity) =
-        gameSessionDao.deleteSession(session)
 }

@@ -48,6 +48,7 @@ fun GameDetailContent(
     onPersonalRatingChanged: (Float) -> Unit,
     onAchievementToggled: (Int, Boolean) -> Unit,
     onSessionToggled: () -> Unit,
+    onDebugSession: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // does not show game data if the game is just in the wishlist
@@ -203,6 +204,17 @@ fun GameDetailContent(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(if (uiState.isSessionActive) "Stop session" else "Start session")
+            }
+
+            // DEBUG BUTTON: REMOVE IN PRODUCTION
+            Button(
+                onClick = onDebugSession,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors()
+            ) {
+                Text("DBG")
             }
         }
     }

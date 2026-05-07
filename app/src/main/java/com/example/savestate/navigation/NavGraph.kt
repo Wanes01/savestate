@@ -24,6 +24,7 @@ import com.example.savestate.ui.screens.gamedetail.GameDetailsScreen
 import com.example.savestate.ui.screens.library.LibraryScreen
 import com.example.savestate.ui.screens.profile.ProfileScreen
 import com.example.savestate.ui.screens.search.SearchScreen
+import com.example.savestate.ui.screens.stats.StatsScreen
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -107,7 +108,7 @@ fun NavGraph(
             )
         }
         composable<NavigationRoute.Stats> {
-            Text("Statistiche")
+            StatsScreen(modifier, appViewModel)
         }
         composable<NavigationRoute.Profile> {
             ProfileScreen(modifier, appViewModel) {

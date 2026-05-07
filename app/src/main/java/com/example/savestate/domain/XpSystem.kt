@@ -1,10 +1,10 @@
 package com.example.savestate.domain
 
 object XpSystem {
-    private const val XP_PER_MINUTE = 2
+    private const val XP_PER_MINUTE = 1
     private const val XP_GAME_RATED = 50
     private const val XP_GAME_COMPLETED = 100
-    private const val LEVEL_BASE_XP = 100
+    private const val LEVEL_BASE_XP = 200 // xp needed for the first level
 
     /**
      * Maps the day streak to an XP multiplier.

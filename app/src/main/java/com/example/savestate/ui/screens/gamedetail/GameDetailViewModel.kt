@@ -27,6 +27,10 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 data class GameDetailUiState(
     // base state
@@ -196,9 +200,19 @@ class GameDetailViewModel(
                         .sumOf {
                             XpSystem.xpForAchievement(
                                 it.percent,
-                                0)
+                                1)
                         }
                     if (achievementsXp > 0) userPreferences.addXp(-achievementsXp)
+
+                    // removes the sessions playtime xps
+                    val sessionsXp =
+                        libraryRepository.getSessionsByGame(currentUserGame.gameId)
+                            .first()
+                            .sumOf {
+                                XpSystem.xpForSession(it.durationMinutes, 1)
+                            }
+
+                    if (sessionsXp > 0) userPreferences.addXp(-sessionsXp)
 
                     libraryRepository.removeGame(currentUserGame)
                 }
@@ -299,6 +313,9 @@ class GameDetailViewModel(
             // in order to not pollute the database
             if (durationMinutes >= 1) {
                 viewModelScope.launch {
+                    // updates the day streak
+                    userPreferences.updateStreak()
+
                     // saves the game session
                     libraryRepository.insertSession(
                         GameSessionEntity(
@@ -308,9 +325,6 @@ class GameDetailViewModel(
                             durationMinutes = durationMinutes
                         )
                     )
-
-                    // updates the day streak
-                    userPreferences.updateStreak()
 
                     // adds xps
                     val userXpData = userPreferences.userXp.first()
@@ -323,6 +337,52 @@ class GameDetailViewModel(
             // starts a new session
             _uiState.update {
                 it.copy(isSessionActive = true, sessionStartTime = System.currentTimeMillis())
+            }
+        }
+    }
+
+    // DEBUG FUNCTION: REMOVE IN PRODUCTION
+    // ADDS AN HOUR SESSION OF THE GAME IN THE DATABASE
+    fun onDebugSession() {
+        val gameId = _uiState.value.game?.id ?: return
+
+        viewModelScope.launch {
+            userPreferences.updateStreak()
+
+            val now = LocalDateTime.now()
+            val sessions = (0..6).map { daysAgo ->
+                val randomHour = (8..22).random()
+                val randomMinute = (0..59).random()
+
+                var startDateTime = now.minusDays(daysAgo.toLong())
+                    .withHour(randomHour)
+                    .withMinute(randomMinute)
+                    .withSecond(0)
+
+                // makes sure that the session is not in the future
+                if (startDateTime.isAfter(now)) {
+                    startDateTime = now.minusHours(1)
+                }
+
+                val maxDuration = ChronoUnit.MINUTES.between(startDateTime, now).toInt()
+                val duration = (1..maxOf(1, minOf(180, maxDuration))).random()
+
+                val startTime = startDateTime.toInstant(ZoneOffset.UTC).toEpochMilli()
+
+                GameSessionEntity(
+                    gameId = gameId,
+                    startTime = startTime,
+                    endTime = startTime + duration * 60_000L,
+                    durationMinutes = duration
+                )
+            }
+
+            sessions.forEach {
+                libraryRepository.insertSession(it)
+
+                val userXpData = userPreferences.userXp.first()
+                val xpDiff = XpSystem.xpForSession(it.durationMinutes, userXpData.dayStreak)
+                userPreferences.addXp(xpDiff)
             }
         }
     }

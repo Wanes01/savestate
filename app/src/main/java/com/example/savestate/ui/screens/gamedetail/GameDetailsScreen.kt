@@ -66,7 +66,8 @@ fun GameDetailsScreen(
                 onAchievementToggled = { id, completed ->
                     gameDetailViewModel.onAchievementToggled(id, completed)
                 },
-                onSessionToggled = { gameDetailViewModel.onSessionToggled() }
+                onSessionToggled = { gameDetailViewModel.onSessionToggled() },
+                onDebugSession = { gameDetailViewModel.onDebugSession() }
             )
         }
     }

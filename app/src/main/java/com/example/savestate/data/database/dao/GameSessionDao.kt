@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.models.GamePlaytime
+import com.example.savestate.data.models.GameSessionWithName
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,6 +23,18 @@ interface GameSessionDao {
      */
     @Query("SELECT * FROM game_sessions WHERE gameId = :gameId ORDER BY startTime DESC")
     fun getSessionsByGame(gameId: Int): Flow<List<GameSessionEntity>>
+
+    /**
+     * Returns all sessions in a date range including the game name.
+     */
+    @Query("""
+        SELECT s.*, g.name as gameName
+        FROM game_sessions s
+        INNER JOIN user_games g ON s.gameId = g.gameId
+        WHERE s.startTime >= :from AND s.startTime <= :to
+        ORDER BY s.startTime DESC
+    """)
+    fun getSessionsWithNameInRange(from: Long, to: Long): Flow<List<GameSessionWithName>>
 
     /**
      * Returns the total minutes played for a game.
