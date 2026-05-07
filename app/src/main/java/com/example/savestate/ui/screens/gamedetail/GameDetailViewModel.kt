@@ -1,10 +1,12 @@
 package com.example.savestate.ui.screens.gamedetail
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.database.entity.UserAchievementEntity
 import com.example.savestate.data.database.entity.UserGameEntity
+import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.models.RawgCompany
 import com.example.savestate.data.models.RawgEsrbRating
@@ -14,6 +16,7 @@ import com.example.savestate.data.models.RawgPlatformInfo
 import com.example.savestate.data.models.RawgPlatformWrapper
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
+import com.example.savestate.domain.XpSystem
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -47,7 +51,8 @@ data class GameDetailUiState(
 @OptIn(FlowPreview::class)
 class GameDetailViewModel(
     private val rawgRepository: RawgRepository,
-    private val libraryRepository: LibraryRepository
+    private val libraryRepository: LibraryRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     companion object {
@@ -146,8 +151,10 @@ class GameDetailViewModel(
         genres = genres.split(",").filter { it.isNotBlank() }.map { RawgGenre(id = 0, name = it) },
         platforms = platforms.split(",").filter { it.isNotBlank() }
             .map { RawgPlatformWrapper(platform = RawgPlatformInfo(id = 0, name = it)) },
-        developers = developers.split(",").filter { it.isNotBlank() }.map { RawgCompany(id = 0, name = it) },
-        publishers = publishers.split(",").filter { it.isNotBlank() }.map { RawgCompany(id = 0, name = it) },
+        developers = developers.split(",").filter { it.isNotBlank() }
+            .map { RawgCompany(id = 0, name = it) },
+        publishers = publishers.split(",").filter { it.isNotBlank() }
+            .map { RawgCompany(id = 0, name = it) },
         descriptionRaw = description,
         website = website,
         playtime = playtime,
@@ -163,6 +170,8 @@ class GameDetailViewModel(
      * or updates the status if already in the library.
      * If the new status is equal to the previews one, removes the game
      * from the library.
+     *
+     * Gives / removes xp on game completition.
      */
     fun onStatusSelected(status: GameStatus) {
         // if no data is available there is nothing to do
@@ -170,17 +179,47 @@ class GameDetailViewModel(
         val currentUserGame = _uiState.value.userGame
 
         viewModelScope.launch {
+            val userXpData = userPreferences.userXp.first()
+            val xpDiff = XpSystem.xpForGameCompleted(userXpData.dayStreak)
+
             when {
                 // same status tapped again, remove from library
                 currentUserGame?.status == status -> {
+                    // game was completed, removes xps
+                    if (status == GameStatus.COMPLETED) userPreferences.addXp(-xpDiff)
+
+                    // removes completed achievement xps
+                    val achievementsXp =
+                        libraryRepository.getAchievementsByGame(currentUserGame.gameId)
+                        .first()
+                        .filter { it.isCompleted }
+                        .sumOf {
+                            XpSystem.xpForAchievement(
+                                it.percent,
+                                0)
+                        }
+                    if (achievementsXp > 0) userPreferences.addXp(-achievementsXp)
+
                     libraryRepository.removeGame(currentUserGame)
                 }
                 // already in library, updates status
                 currentUserGame != null -> {
                     libraryRepository.updateStatus(game.id, status)
+                    if (
+                        status != GameStatus.COMPLETED
+                        && currentUserGame.status == GameStatus.COMPLETED
+                    ) { // completed to any other status
+                        userPreferences.addXp(-xpDiff)
+                    } else if (status == GameStatus.COMPLETED) { // any other status to completed
+                        userPreferences.addXp(xpDiff)
+                    }
                 }
                 // adds the game to the library
                 else -> {
+                    // the very first status is completed. Adds xps
+                    if (status == GameStatus.COMPLETED) {
+                        userPreferences.addXp(xpDiff)
+                    }
                     _uiState.update {
                         it.copy(isLoadingAchievements = true)
                     }
@@ -196,14 +235,44 @@ class GameDetailViewModel(
         _pendingNotes.value = gameId to notes
     }
 
+    /**
+     * Sets the rating of the user for this game.
+     * Assigns xps if it's the first time the user
+     * rates this game.
+     */
     fun onPersonalRatingChanged(rating: Float) {
         val gameId = _uiState.value.game?.id ?: return
-        viewModelScope.launch { libraryRepository.updatePersonalRating(gameId, rating) }
+        viewModelScope.launch {
+            _uiState.value.userGame?.let {
+                // the user never rated the game before
+                if (it.personalRating == null) {
+                    val userXpData = userPreferences.userXp.first()
+                    val xpDiff = XpSystem.xpForGameRating(userXpData.dayStreak)
+                    userPreferences.addXp(xpDiff)
+                }
+            }
+            libraryRepository.updatePersonalRating(gameId, rating)
+        }
     }
 
+    /**
+     * Toggles an achievement status to completed or not.
+     *
+     * Assigns / detracts the achievement xp based on completion.
+     */
     fun onAchievementToggled(achievementId: Int, isCompleted: Boolean) {
         viewModelScope.launch {
             libraryRepository.updateAchievementCompleted(achievementId, isCompleted)
+
+            val completionPerc = _uiState
+                .value
+                .achievements
+                .first { it.achievementId == achievementId }
+                .percent
+            // assigns / removes xp
+            val userXpData = userPreferences.userXp.first()
+            val xpDiff = XpSystem.xpForAchievement(completionPerc, userXpData.dayStreak)
+            userPreferences.addXp(if (isCompleted) xpDiff else -xpDiff)
         }
     }
 
@@ -212,6 +281,8 @@ class GameDetailViewModel(
     /**
      * Starts/stops the game session timer.
      * When stopped, saves the session to the database.
+     *
+     * Adds xps based on session length
      */
     fun onSessionToggled() {
         val gameId = _uiState.value.game?.id ?: return
@@ -226,6 +297,7 @@ class GameDetailViewModel(
             // in order to not pollute the database
             if (durationMinutes >= 1) {
                 viewModelScope.launch {
+                    // saves the game session
                     libraryRepository.insertSession(
                         GameSessionEntity(
                             gameId = gameId,
@@ -234,6 +306,11 @@ class GameDetailViewModel(
                             durationMinutes = durationMinutes
                         )
                     )
+
+                    // adds xps
+                    val userXpData = userPreferences.userXp.first()
+                    val xpDiff = XpSystem.xpForSession(durationMinutes, userXpData.dayStreak)
+                    userPreferences.addXp(xpDiff)
                 }
             }
             _uiState.update { it.copy(isSessionActive = false, sessionStartTime = null) }

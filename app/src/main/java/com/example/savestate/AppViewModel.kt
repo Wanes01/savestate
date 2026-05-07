@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.SavestateDatabase
 import com.example.savestate.data.datastore.ThemePreferences
+import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.models.Theme
 import com.example.savestate.data.models.UserData
+import com.example.savestate.data.models.UserXp
 import com.example.savestate.data.repositories.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,18 +39,27 @@ data class NotificationSettings(
 
 class AppViewModel(
     private val themePreferences: ThemePreferences,
+    private val userPreferences: UserPreferences,
     private val authRepository: AuthRepository,
     private val database: SavestateDatabase
 ) : ViewModel() {
     private val _topBarState = MutableStateFlow(TopBarState())
     val topBarState: StateFlow<TopBarState> = _topBarState.asStateFlow()
 
-    val userData: StateFlow<UserData> = authRepository.userData
+    val userData: StateFlow<UserData> = userPreferences.userData
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = UserData()
         )
+
+    val userXp: StateFlow<UserXp> = userPreferences.userXp
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = UserXp()
+        )
+
 
     val theme: StateFlow<Theme> = themePreferences.theme
         .stateIn(
@@ -59,7 +70,7 @@ class AppViewModel(
 
     // becomes true when the datastore becomes readable
     val isReady: StateFlow<Boolean> = combine(
-        authRepository.userData,
+        userPreferences.userData,
         themePreferences.theme
     ) { _, _ -> true }
         .stateIn(

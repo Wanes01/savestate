@@ -2,6 +2,7 @@ package com.example.savestate.domain
 
 object XpSystem {
     private const val XP_PER_MINUTE = 2
+    private const val XP_GAME_RATED = 50
     private const val XP_GAME_COMPLETED = 100
     private const val LEVEL_BASE_XP = 100
 
@@ -64,6 +65,14 @@ object XpSystem {
      */
     fun xpForGameCompleted(dayStreak: Int): Int {
         return (XP_GAME_COMPLETED * streakMultiplier(dayStreak)).toInt()
+    }
+
+    /**
+     * Gives xps for rating a game. Scales on
+     * number of day streak
+     */
+    fun xpForGameRating(dayStreak: Int): Int {
+        return (XP_GAME_RATED * streakMultiplier(dayStreak)).toInt()
     }
 
     // level methods

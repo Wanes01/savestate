@@ -1,5 +1,6 @@
 package com.example.savestate.data.datastore
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -7,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.savestate.data.models.UserData
+import com.example.savestate.data.models.UserXp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -29,6 +31,12 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             displayName = prefs[DISPLAY_NAME] ?: "",
             email = prefs[EMAIL] ?: "",
             photoUrl = prefs[PHOTO_URL],
+        )
+    }
+
+    // current user xp data
+    val userXp : Flow<UserXp> = dataStore.data.map { prefs ->
+        UserXp(
             xp = prefs[XP] ?: 0,
             dayStreak = prefs[DAY_STREAK] ?: 0
         )
@@ -45,8 +53,13 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs[DISPLAY_NAME] = userData.displayName
             prefs[EMAIL] = userData.email
             userData.photoUrl?.let { prefs[PHOTO_URL] = it }
-            prefs[XP] = userData.xp
-            prefs[DAY_STREAK] = userData.dayStreak
+        }
+    }
+
+    suspend fun saveXpData(userXp: UserXp) {
+        dataStore.edit { prefs ->
+            prefs[XP] = userXp.xp
+            prefs[DAY_STREAK] = userXp.dayStreak
         }
     }
 
@@ -64,4 +77,18 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs.remove(DAY_STREAK)
         }
     }
+
+    /**
+     * Adds an XP difference to the current xp amount.
+     * XPs are never set below 0.
+     * The quantity can be either positive or negative.
+     */
+    suspend fun addXp(xpDiff: Int) {
+        dataStore.edit { prefs ->
+            val currXp = prefs[XP] ?: 0
+            prefs[XP] = (currXp + xpDiff).coerceAtLeast(0)
+        }
+    }
+
+     // TODO: RESET AND INCREMENT STREAK
 }

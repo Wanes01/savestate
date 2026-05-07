@@ -22,6 +22,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
 import com.example.savestate.data.models.Theme
+import com.example.savestate.domain.XpSystem
 import com.example.savestate.ui.components.profile.ProfileHeader
 import com.example.savestate.ui.components.profile.ThemeSelector
 
@@ -32,6 +33,7 @@ fun ProfileScreen(
     onLogOut: () -> Unit
 ) {
     val userData by appViewModel.userData.collectAsStateWithLifecycle()
+    val userXp by appViewModel.userXp.collectAsStateWithLifecycle()
     val theme by appViewModel.theme.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -60,11 +62,13 @@ fun ProfileScreen(
         color = MaterialTheme.colorScheme.background,
     ) {
         Column {
+            val level = XpSystem.levelFromXp(userXp.xp)
+            val levelTitle = XpSystem.levelTitle(level)
             // profile info
             ProfileHeader(
                 nickname = userData.displayName,
                 email = userData.email,
-                levelLabel = "Level 7 - Veteran TODOOO",
+                levelLabel = "Level $level - $levelTitle",
                 photoUri = userData.photoUrl?.toUri(),
                 onPickPhoto = {}
             )

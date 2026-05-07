@@ -6,6 +6,4 @@ data class UserData(
     val displayName: String = "",
     val email: String = "",
     val photoUrl: String? = null,
-    val xp: Int = 0,
-    val dayStreak: Int = 0
 )
