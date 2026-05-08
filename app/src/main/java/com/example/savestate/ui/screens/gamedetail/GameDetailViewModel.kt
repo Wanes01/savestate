@@ -309,41 +309,24 @@ class GameDetailViewModel(
     fun onSessionToggled() {
         val game = _uiState.value.game ?: return
 
-        if (sessionManager.activeSession.value?.gameId == game.id) {
-            val session = sessionManager.stopSession() ?: return
-            viewModelScope.launch {
-                saveSession(session)
+        viewModelScope.launch {
+            if (sessionManager.activeSession.value?.gameId == game.id) {
+                sessionManager.stopSession()
+            } else {
+                sessionManager.startSession(game.id, game.name)
             }
-        } else {
-            sessionManager.startSession(game.id, game.name)
         }
     }
-
-    private suspend fun saveSession(session: ActiveSession) {
-        val endTime = System.currentTimeMillis()
-        val durationMinutes = session.startTime.deltaToMinutes(endTime)
-        if (durationMinutes < 1) return
-
-        userPreferences.updateStreak()
-        libraryRepository.insertSession(
-            GameSessionEntity(
-                gameId = session.gameId,
-                startTime = session.startTime,
-                endTime = endTime,
-                durationMinutes = durationMinutes
-            )
-        )
-        val xpDiff = XpSystem.xpForSession(durationMinutes, userPreferences.userXp.first().dayStreak)
-        userPreferences.addXp(xpDiff)
-    }
-
-    private fun Long.deltaToMinutes(endTime: Long) = ((endTime - this) / 1000 / 60).toInt()
-
     fun stopCurrentAndStartNew() {
         val game = _uiState.value.game ?: return
+        /*
         val session = sessionManager.stopSession()
         viewModelScope.launch {
             session?.let { saveSession(it) }
+            sessionManager.startSession(game.id, game.name)
+        }*/
+        viewModelScope.launch {
+            sessionManager.stopSession()
             sessionManager.startSession(game.id, game.name)
         }
     }

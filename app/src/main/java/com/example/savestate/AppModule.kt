@@ -64,15 +64,13 @@ val appModule = module {
     single { get<SavestateDatabase>().gameSessionDao() }
 
     // active session
-    single { SessionManager() }
+    single { SessionManager(get(), get()) }
 
     // repository and viewmodel
     single { AuthRepository(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { AppViewModel(get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
-    // koin must not create a new instance of AppViewModel as it holds the session
-    // chronometer
     viewModel { GameDetailViewModel(get(), get(), get(), get()) }
     viewModel { LibraryViewModel(get()) }
     viewModel { StatsViewModel(get(), get()) }

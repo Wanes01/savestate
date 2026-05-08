@@ -1,8 +1,12 @@
 package com.example.savestate.domain
 
+import com.example.savestate.data.database.dao.GameSessionDao
+import com.example.savestate.data.database.entity.GameSessionEntity
+import com.example.savestate.data.datastore.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 
 // the current active session
 data class ActiveSession(
@@ -11,31 +15,41 @@ data class ActiveSession(
     val startTime: Long = System.currentTimeMillis()
 )
 
-class SessionManager {
+class SessionManager(
+    private val sessionDao: GameSessionDao,
+    private val userPreferences: UserPreferences
+) {
     private val _activeSession = MutableStateFlow<ActiveSession?>(null)
     val activeSession: StateFlow<ActiveSession?> = _activeSession.asStateFlow()
 
-    /**
-     * Starts a new session for the specified game.
-     * Does nothing if there's an active session for the same game.
-     */
     fun startSession(gameId: Int, gameName: String) {
         if (_activeSession.value?.gameId == gameId) return
         _activeSession.value = ActiveSession(gameId = gameId, gameName = gameName)
     }
 
-    /**
-     * Stops the current active session returns it.
-     */
-    fun stopSession(): ActiveSession? {
-        val session = _activeSession.value
+    suspend fun stopSession() {
+        val session = _activeSession.value ?: return
         _activeSession.value = null
-        return session
+
+        val endTime = System.currentTimeMillis()
+        val durationMinutes = session.startTime.deltaToMinutes(endTime)
+        if (durationMinutes < 1) return
+
+        userPreferences.updateStreak()
+        sessionDao.insertSession(
+            GameSessionEntity(
+                gameId = session.gameId,
+                startTime = session.startTime,
+                endTime = endTime,
+                durationMinutes = durationMinutes
+            )
+        )
+        val xpDiff = XpSystem.xpForSession(durationMinutes, userPreferences.userXp.first().dayStreak)
+        userPreferences.addXp(xpDiff)
     }
 
-    /**
-     * Cancels the current active session.
-     */
+    private fun Long.deltaToMinutes(endTime: Long) = ((endTime - this) / 1000 / 60).toInt()
+
     fun cancelSession() {
         _activeSession.value = null
     }
