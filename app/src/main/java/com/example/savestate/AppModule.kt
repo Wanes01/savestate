@@ -12,6 +12,7 @@ import com.example.savestate.data.repositories.AuthRepository
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
 import com.example.savestate.data.repositories.StatsRepository
+import com.example.savestate.domain.SessionManager
 import com.example.savestate.ui.screens.auth.AuthViewModel
 import com.example.savestate.ui.screens.gamedetail.GameDetailViewModel
 import com.example.savestate.ui.screens.library.LibraryViewModel
@@ -62,12 +63,17 @@ val appModule = module {
     single { get<SavestateDatabase>().userAchievementDao() }
     single { get<SavestateDatabase>().gameSessionDao() }
 
+    // active session
+    single { SessionManager() }
+
     // repository and viewmodel
     single { AuthRepository(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { AppViewModel(get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
-    viewModel { GameDetailViewModel(get(), get(), get()) }
+    // koin must not create a new instance of AppViewModel as it holds the session
+    // chronometer
+    viewModel { GameDetailViewModel(get(), get(), get(), get()) }
     viewModel { LibraryViewModel(get()) }
     viewModel { StatsViewModel(get(), get()) }
 }

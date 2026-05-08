@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,9 +24,13 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,7 +40,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.models.RawgGameDetail
+import com.example.savestate.domain.ActiveSession
 import com.example.savestate.ui.screens.gamedetail.GameDetailUiState
+import kotlinx.coroutines.delay
 
 val StarYellow = Color(0xFFFFD700)
 
@@ -43,18 +50,55 @@ val StarYellow = Color(0xFFFFD700)
 fun GameDetailContent(
     game: RawgGameDetail,
     uiState: GameDetailUiState,
+    activeSession: ActiveSession?,
     onBack: () -> Unit,
     onStatusSelected: (GameStatus) -> Unit,
     onNotesChanged: (String) -> Unit,
     onPersonalRatingChanged: (Float) -> Unit,
     onAchievementToggled: (Int, Boolean) -> Unit,
     onSessionToggled: () -> Unit,
+    onStopCurrentAndStartNew: () -> Unit,
     onDebugSession: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // does not show game data if the game is just in the wishlist
     val showGameData = uiState.userGame != null && uiState.userGame.status != GameStatus.WISHLIST
     var achievementsExpanded by rememberSaveable { mutableStateOf(false) }
+    var showConflictDialog by remember { mutableStateOf(false) }
+
+    val isThisGameActive = activeSession?.gameId == game.id
+
+    var elapsedSeconds by remember { mutableLongStateOf(0L) }
+
+    // updates the chronometer every second
+    LaunchedEffect(isThisGameActive, activeSession?.startTime) {
+        if (isThisGameActive) {
+            while (true) {
+                elapsedSeconds = (System.currentTimeMillis() - activeSession.startTime) / 1000
+                delay(1000)
+            }
+        } else {
+            elapsedSeconds = 0L
+        }
+    }
+
+    // dialog that notifies the user that a session for the same game is already ongoing
+    if (showConflictDialog && activeSession != null) {
+        AlertDialog(
+            onDismissRequest = { showConflictDialog = false },
+            title = { Text("Session in progress") },
+            text = { Text("You're already playing ${activeSession.gameName}. Do you want to end that session?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showConflictDialog = false
+                    onStopCurrentAndStartNew()
+                }) { Text("End and start") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConflictDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         // renders the whole page as a lazy column
@@ -195,24 +239,33 @@ fun GameDetailContent(
         // session button (only if in library)
         if (showGameData) {
             Button(
-                onClick = onSessionToggled,
+                onClick = {
+                    when {
+                        // there's an active session of another game. Shows the dialog.
+                        activeSession != null && !isThisGameActive -> showConflictDialog = true
+                        else -> onSessionToggled()
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .padding(16.dp),
-                colors = if (uiState.isSessionActive) {
+                colors = if (isThisGameActive) {
                     ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 } else {
                     ButtonDefaults.buttonColors()
                 }
             ) {
                 Icon(
-                    imageVector = if (uiState.isSessionActive) Icons.Default.Stop else Icons.Default.PlayArrow,
+                    imageVector = if (isThisGameActive) Icons.Default.Stop else Icons.Default.PlayArrow,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(if (uiState.isSessionActive) "Stop session" else "Start session")
+                Text(
+                    if (isThisGameActive) elapsedSeconds.toFormattedTime()
+                    else "Start session"
+                )
             }
 
             // DEBUG BUTTON: REMOVE IN PRODUCTION
@@ -227,4 +280,12 @@ fun GameDetailContent(
             }
         }
     }
+}
+
+private fun Long.toFormattedTime(): String {
+    val h = this / 3600
+    val m = (this % 3600) / 60
+    val s = this % 60
+    return if (h > 0) "%d:%02d:%02d".format(h, m, s)
+    else "%02d:%02d".format(m, s)
 }

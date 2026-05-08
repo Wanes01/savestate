@@ -127,7 +127,4 @@ class LibraryRepository(
 
     fun getSessionsByGame(gameId: Int): Flow<List<GameSessionEntity>> =
         gameSessionDao.getSessionsByGame(gameId)
-
-    fun getSessionsInRange(from: Long, to: Long): Flow<List<GameSessionEntity>> =
-        gameSessionDao.getSessionsInRange(from, to)
 }

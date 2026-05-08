@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
 import com.example.savestate.ui.components.gamedetail.GameDetailContent
+import io.ktor.http.parametersOf
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun GameDetailsScreen(
@@ -27,6 +29,7 @@ fun GameDetailsScreen(
 ) {
     val gameDetailViewModel: GameDetailViewModel = koinViewModel()
     val uiState by gameDetailViewModel.uiState.collectAsStateWithLifecycle()
+    val activeSession by gameDetailViewModel.activeSession.collectAsStateWithLifecycle()
 
     LaunchedEffect(gameId) {
         gameDetailViewModel.loadGame(gameId)
@@ -67,6 +70,8 @@ fun GameDetailsScreen(
                     gameDetailViewModel.onAchievementToggled(id, completed)
                 },
                 onSessionToggled = { gameDetailViewModel.onSessionToggled() },
+                activeSession = activeSession,
+                onStopCurrentAndStartNew = { gameDetailViewModel.stopCurrentAndStartNew() },
                 onDebugSession = { gameDetailViewModel.onDebugSession() }
             )
         }

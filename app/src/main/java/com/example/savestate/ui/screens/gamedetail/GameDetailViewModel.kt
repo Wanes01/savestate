@@ -15,6 +15,8 @@ import com.example.savestate.data.models.RawgPlatformInfo
 import com.example.savestate.data.models.RawgPlatformWrapper
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
+import com.example.savestate.domain.ActiveSession
+import com.example.savestate.domain.SessionManager
 import com.example.savestate.domain.XpSystem
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,14 +48,11 @@ data class GameDetailUiState(
     val completedAchievementsCount: Int = 0,
     val totalMinutesPlayed: Int = 0,
     val lastSession: GameSessionEntity? = null,
-
-    // session timer
-    val isSessionActive: Boolean = false,
-    val sessionStartTime: Long? = null
 )
 
 @OptIn(FlowPreview::class)
 class GameDetailViewModel(
+    private val sessionManager: SessionManager,
     private val rawgRepository: RawgRepository,
     private val libraryRepository: LibraryRepository,
     private val userPreferences: UserPreferences
@@ -69,6 +68,7 @@ class GameDetailViewModel(
     private val libraryMutex = Mutex()
     private val _uiState = MutableStateFlow(GameDetailUiState())
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
+    val activeSession: StateFlow<ActiveSession?> = sessionManager.activeSession
 
     init {
         viewModelScope.launch {
@@ -155,12 +155,12 @@ class GameDetailViewModel(
         backgroundImage = backgroundImage,
         rating = rating,
         ratingsCount = ratingsCount,
-        genres = genres.split(",").filter { it.isNotBlank() }.map { RawgGenre(id = 0, name = it) },
-        platforms = platforms.split(",").filter { it.isNotBlank() }
+        genres = genres.split(", ").filter { it.isNotBlank() }.map { RawgGenre(id = 0, name = it) },
+        platforms = platforms.split(", ").filter { it.isNotBlank() }
             .map { RawgPlatformWrapper(platform = RawgPlatformInfo(id = 0, name = it)) },
-        developers = developers.split(",").filter { it.isNotBlank() }
+        developers = developers.split(", ").filter { it.isNotBlank() }
             .map { RawgCompany(id = 0, name = it) },
-        publishers = publishers.split(",").filter { it.isNotBlank() }
+        publishers = publishers.split(", ").filter { it.isNotBlank() }
             .map { RawgCompany(id = 0, name = it) },
         descriptionRaw = description,
         website = website,
@@ -297,54 +297,54 @@ class GameDetailViewModel(
         }
     }
 
-    // SESSION TIMER ACTIONS
+    // Session cronometer actions
 
     /**
-     * Starts/stops the game session timer.
-     * When stopped, saves the session to the database.
-     * Updates the current day streak when a new
-     * session gets registered.
-     *
-     * Adds xps based on session length
+     * Starts/stops the active session.
+     * When stopped, a session gets saved and generates xps
+     * based on its duration.
+     * Does nothing if another session is already active.
      */
+    // GameDetailViewModel
     fun onSessionToggled() {
-        val gameId = _uiState.value.game?.id ?: return
+        val game = _uiState.value.game ?: return
 
-        if (_uiState.value.isSessionActive) {
-            // stop session and save it
-            val startTime = _uiState.value.sessionStartTime ?: return
-            val endTime = System.currentTimeMillis()
-            val durationMinutes = startTime.deltaToMinutes(endTime)
-
-            // only save sessions longer than 1 minute
-            // in order to not pollute the database
-            if (durationMinutes >= 1) {
-                viewModelScope.launch {
-                    // updates the day streak
-                    userPreferences.updateStreak()
-
-                    // saves the game session
-                    libraryRepository.insertSession(
-                        GameSessionEntity(
-                            gameId = gameId,
-                            startTime = startTime,
-                            endTime = endTime,
-                            durationMinutes = durationMinutes
-                        )
-                    )
-
-                    // adds xps
-                    val userXpData = userPreferences.userXp.first()
-                    val xpDiff = XpSystem.xpForSession(durationMinutes, userXpData.dayStreak)
-                    userPreferences.addXp(xpDiff)
-                }
+        if (sessionManager.activeSession.value?.gameId == game.id) {
+            val session = sessionManager.stopSession() ?: return
+            viewModelScope.launch {
+                saveSession(session)
             }
-            _uiState.update { it.copy(isSessionActive = false, sessionStartTime = null) }
         } else {
-            // starts a new session
-            _uiState.update {
-                it.copy(isSessionActive = true, sessionStartTime = System.currentTimeMillis())
-            }
+            sessionManager.startSession(game.id, game.name)
+        }
+    }
+
+    private suspend fun saveSession(session: ActiveSession) {
+        val endTime = System.currentTimeMillis()
+        val durationMinutes = session.startTime.deltaToMinutes(endTime)
+        if (durationMinutes < 1) return
+
+        userPreferences.updateStreak()
+        libraryRepository.insertSession(
+            GameSessionEntity(
+                gameId = session.gameId,
+                startTime = session.startTime,
+                endTime = endTime,
+                durationMinutes = durationMinutes
+            )
+        )
+        val xpDiff = XpSystem.xpForSession(durationMinutes, userPreferences.userXp.first().dayStreak)
+        userPreferences.addXp(xpDiff)
+    }
+
+    private fun Long.deltaToMinutes(endTime: Long) = ((endTime - this) / 1000 / 60).toInt()
+
+    fun stopCurrentAndStartNew() {
+        val game = _uiState.value.game ?: return
+        val session = sessionManager.stopSession()
+        viewModelScope.launch {
+            session?.let { saveSession(it) }
+            sessionManager.startSession(game.id, game.name)
         }
     }
 
@@ -393,6 +393,4 @@ class GameDetailViewModel(
             }
         }
     }
-
-    private fun Long.deltaToMinutes(endTime: Long) = ((endTime - this) / 1000 / 60).toInt()
 }

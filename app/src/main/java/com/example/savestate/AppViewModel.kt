@@ -5,18 +5,23 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.SavestateDatabase
+import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.ThemePreferences
 import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.models.Theme
 import com.example.savestate.data.models.UserData
 import com.example.savestate.data.models.UserXp
 import com.example.savestate.data.repositories.AuthRepository
+import com.example.savestate.data.repositories.LibraryRepository
+import com.example.savestate.domain.XpSystem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,14 +32,6 @@ data class TopBarState(
     val actions: (@Composable RowScope.() -> Unit)? = null,
     val isTopBarVisible: Boolean = true,
 )
-
-/*
-data class NotificationSettings(
-    val streakReminder: Boolean = true,
-    val levelUp: Boolean = true,
-    val sessionDuration: Boolean = false,
-)
-*/
 
 class AppViewModel(
     private val themePreferences: ThemePreferences,
