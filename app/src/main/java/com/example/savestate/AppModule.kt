@@ -16,9 +16,11 @@ import com.example.savestate.domain.SessionManager
 import com.example.savestate.ui.screens.auth.AuthViewModel
 import com.example.savestate.ui.screens.gamedetail.GameDetailViewModel
 import com.example.savestate.ui.screens.library.LibraryViewModel
+import com.example.savestate.ui.screens.profile.ProfileViewModel
 import com.example.savestate.ui.screens.search.SearchViewModel
 import com.example.savestate.ui.screens.stats.StatsViewModel
 import com.google.firebase.auth.FirebaseAuth
+import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -74,4 +76,5 @@ val appModule = module {
     viewModel { GameDetailViewModel(get(), get(), get(), get()) }
     viewModel { LibraryViewModel(get(), get()) }
     viewModel { StatsViewModel(get(), get()) }
+    viewModel { ProfileViewModel(androidApplication(), get()) }
 }
