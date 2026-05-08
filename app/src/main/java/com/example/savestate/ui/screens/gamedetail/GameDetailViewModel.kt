@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -62,6 +64,9 @@ class GameDetailViewModel(
     }
 
     private val _pendingNotes = MutableStateFlow<Pair<Int, String>?>(null)
+
+    // mutex to handle race conditions on game status change
+    private val libraryMutex = Mutex()
     private val _uiState = MutableStateFlow(GameDetailUiState())
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
 
@@ -178,66 +183,69 @@ class GameDetailViewModel(
     fun onStatusSelected(status: GameStatus) {
         // if no data is available there is nothing to do
         val game = _uiState.value.game ?: return
-        val currentUserGame = _uiState.value.userGame
 
         viewModelScope.launch {
-            val userXpData = userPreferences.userXp.first()
-            val xpDiff = XpSystem.xpForGameCompleted(userXpData.dayStreak)
+            libraryMutex.withLock {
+                val userXpData = userPreferences.userXp.first()
+                val xpDiff = XpSystem.xpForGameCompleted(userXpData.dayStreak)
 
-            when {
-                // same status tapped again, remove from library
-                currentUserGame?.status == status -> {
-                    // game was completed, removes xps
-                    if (status == GameStatus.COMPLETED) userPreferences.addXp(-xpDiff)
+                val currentUserGame = _uiState.value.userGame
 
-                    // removes completed achievement xps
-                    val achievementsXp =
-                        libraryRepository.getAchievementsByGame(currentUserGame.gameId)
-                            .first()
-                            .filter { it.isCompleted }
-                            .sumOf {
-                                XpSystem.xpForAchievement(
-                                    it.percent,
-                                    1
-                                )
-                            }
-                    if (achievementsXp > 0) userPreferences.addXp(-achievementsXp)
+                when {
+                    // same status tapped again, remove from library
+                    currentUserGame?.status == status -> {
+                        // game was completed, removes xps
+                        if (status == GameStatus.COMPLETED) userPreferences.addXp(-xpDiff)
 
-                    // removes the sessions playtime xps
-                    val sessionsXp =
-                        libraryRepository.getSessionsByGame(currentUserGame.gameId)
-                            .first()
-                            .sumOf {
-                                XpSystem.xpForSession(it.durationMinutes, 1)
-                            }
+                        // removes completed achievement xps
+                        val achievementsXp =
+                            libraryRepository.getAchievementsByGame(currentUserGame.gameId)
+                                .first()
+                                .filter { it.isCompleted }
+                                .sumOf {
+                                    XpSystem.xpForAchievement(
+                                        it.percent,
+                                        1
+                                    )
+                                }
+                        if (achievementsXp > 0) userPreferences.addXp(-achievementsXp)
 
-                    if (sessionsXp > 0) userPreferences.addXp(-sessionsXp)
+                        // removes the sessions playtime xps
+                        val sessionsXp =
+                            libraryRepository.getSessionsByGame(currentUserGame.gameId)
+                                .first()
+                                .sumOf {
+                                    XpSystem.xpForSession(it.durationMinutes, 1)
+                                }
 
-                    libraryRepository.removeGame(currentUserGame)
-                }
-                // already in library, updates status
-                currentUserGame != null -> {
-                    libraryRepository.updateStatus(game.id, status)
-                    if (
-                        status != GameStatus.COMPLETED
-                        && currentUserGame.status == GameStatus.COMPLETED
-                    ) { // completed to any other status
-                        userPreferences.addXp(-xpDiff)
-                    } else if (status == GameStatus.COMPLETED) { // any other status to completed
-                        userPreferences.addXp(xpDiff)
+                        if (sessionsXp > 0) userPreferences.addXp(-sessionsXp)
+
+                        libraryRepository.removeGame(currentUserGame)
                     }
-                }
-                // adds the game to the library
-                else -> {
-                    // the very first status is completed. Adds xps
-                    if (status == GameStatus.COMPLETED) {
-                        userPreferences.addXp(xpDiff)
+                    // already in library, updates status
+                    currentUserGame != null -> {
+                        libraryRepository.updateStatus(game.id, status)
+                        if (
+                            status != GameStatus.COMPLETED
+                            && currentUserGame.status == GameStatus.COMPLETED
+                        ) { // completed to any other status
+                            userPreferences.addXp(-xpDiff)
+                        } else if (status == GameStatus.COMPLETED) { // any other status to completed
+                            userPreferences.addXp(xpDiff)
+                        }
                     }
-                    _uiState.update {
-                        it.copy(isLoadingAchievements = true)
+                    // adds the game to the library
+                    else -> {
+                        // the very first status is completed. Adds xps
+                        if (status == GameStatus.COMPLETED) {
+                            userPreferences.addXp(xpDiff)
+                        }
+                        _uiState.update {
+                            it.copy(isLoadingAchievements = true)
+                        }
+                        libraryRepository.addGame(game, status)
+                        _uiState.update { it.copy(isLoadingAchievements = false) }
                     }
-                    libraryRepository.addGame(game, status)
-                    _uiState.update { it.copy(isLoadingAchievements = false) }
                 }
             }
         }
