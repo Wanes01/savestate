@@ -72,6 +72,6 @@ val appModule = module {
     viewModel { AppViewModel(get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
     viewModel { GameDetailViewModel(get(), get(), get(), get()) }
-    viewModel { LibraryViewModel(get()) }
+    viewModel { LibraryViewModel(get(), get()) }
     viewModel { StatsViewModel(get(), get()) }
 }

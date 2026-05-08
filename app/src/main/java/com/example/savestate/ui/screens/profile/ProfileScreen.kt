@@ -68,7 +68,7 @@ fun ProfileScreen(
             ProfileHeader(
                 nickname = userData.displayName,
                 email = userData.email,
-                levelLabel = "Level $level - $levelTitle",
+                levelLabel = "Level $level · $levelTitle",
                 photoUri = userData.photoUrl?.toUri(),
                 onPickPhoto = {}
             )

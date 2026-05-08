@@ -6,6 +6,8 @@ import com.example.savestate.data.database.entity.UserGameEntity
 import com.example.savestate.data.models.AchievementProgress
 import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.repositories.LibraryRepository
+import com.example.savestate.domain.ActiveSession
+import com.example.savestate.domain.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +25,7 @@ data class LibraryGameItem(
 data class LibraryUiState(
     val filter: GameStatus? = null, // shows all if null
     val allGames: List<LibraryGameItem> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 ) {
     val filteredGames: List<LibraryGameItem>
         get() = if (filter == null)
@@ -33,11 +35,13 @@ data class LibraryUiState(
 }
 
 class LibraryViewModel(
-    private val libraryRepository: LibraryRepository
+    private val libraryRepository: LibraryRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
+    val activeSession: StateFlow<ActiveSession?> = sessionManager.activeSession
 
     init {
         viewModelScope.launch {
@@ -64,6 +68,12 @@ class LibraryViewModel(
     fun onFilterSelected(status: GameStatus?) {
         _uiState.update { current ->
             current.copy(filter = if (current.filter == status) null else status)
+        }
+    }
+
+    fun stopActiveSession() {
+        viewModelScope.launch {
+            sessionManager.stopSession()
         }
     }
 }

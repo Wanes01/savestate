@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.example.savestate.data.models.GameStatus
 import com.example.savestate.data.models.RawgGameDetail
 import com.example.savestate.domain.ActiveSession
+import com.example.savestate.domain.toFormattedTime
 import com.example.savestate.ui.screens.gamedetail.GameDetailUiState
 import kotlinx.coroutines.delay
 
@@ -280,12 +281,4 @@ fun GameDetailContent(
             }
         }
     }
-}
-
-private fun Long.toFormattedTime(): String {
-    val h = this / 3600
-    val m = (this % 3600) / 60
-    val s = this % 60
-    return if (h > 0) "%d:%02d:%02d".format(h, m, s)
-    else "%02d:%02d".format(m, s)
 }
