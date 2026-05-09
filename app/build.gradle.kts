@@ -72,7 +72,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose) // navigation system
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.work.runtime.ktx) // navigation system
     implementation(libs.ktor.serialization.kotlinx.json) // serialization
     implementation(libs.androidx.lifecycle.viewmodel.compose) // viewmodel
     implementation(libs.androidx.lifecycle.runtime.compose)

@@ -1,5 +1,7 @@
 package com.example.savestate.domain
 
+import android.content.Context
+import androidx.navigation.internal.NavContext
 import com.example.savestate.data.database.dao.GameSessionDao
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.UserPreferences
@@ -16,6 +18,7 @@ data class ActiveSession(
 )
 
 class SessionManager(
+    private val context: Context,
     private val sessionDao: GameSessionDao,
     private val userPreferences: UserPreferences
 ) {
@@ -44,8 +47,10 @@ class SessionManager(
                 durationMinutes = durationMinutes
             )
         )
+
         val xpDiff = XpSystem.xpForSession(durationMinutes, userPreferences.userXp.first().dayStreak)
-        userPreferences.addXp(xpDiff)
+        val notifEnabled = userPreferences.notificationPreferences.first().levelEnabled
+        userPreferences.addXpWithLevelUp(xpDiff, context, notifEnabled)
     }
 
     private fun Long.deltaToMinutes(endTime: Long) = ((endTime - this) / 1000 / 60).toInt()

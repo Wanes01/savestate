@@ -1,5 +1,7 @@
 package com.example.savestate.ui.screens.gamedetail
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.entity.GameSessionEntity
@@ -52,11 +54,12 @@ data class GameDetailUiState(
 
 @OptIn(FlowPreview::class)
 class GameDetailViewModel(
+    private val application: Application,
     private val sessionManager: SessionManager,
     private val rawgRepository: RawgRepository,
     private val libraryRepository: LibraryRepository,
     private val userPreferences: UserPreferences
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     companion object {
         private const val NOTE_EDIT_DEBOUNCE_DELAY_MS = 500L
@@ -188,6 +191,7 @@ class GameDetailViewModel(
             libraryMutex.withLock {
                 val userXpData = userPreferences.userXp.first()
                 val xpDiff = XpSystem.xpForGameCompleted(userXpData.dayStreak)
+                val notifEnabled = userPreferences.notificationPreferences.first().levelEnabled
 
                 val currentUserGame = _uiState.value.userGame
 
@@ -197,28 +201,7 @@ class GameDetailViewModel(
                         // game was completed, removes xps
                         if (status == GameStatus.COMPLETED) userPreferences.addXp(-xpDiff)
 
-                        // removes completed achievement xps
-                        val achievementsXp =
-                            libraryRepository.getAchievementsByGame(currentUserGame.gameId)
-                                .first()
-                                .filter { it.isCompleted }
-                                .sumOf {
-                                    XpSystem.xpForAchievement(
-                                        it.percent,
-                                        1
-                                    )
-                                }
-                        if (achievementsXp > 0) userPreferences.addXp(-achievementsXp)
-
-                        // removes the sessions playtime xps
-                        val sessionsXp =
-                            libraryRepository.getSessionsByGame(currentUserGame.gameId)
-                                .first()
-                                .sumOf {
-                                    XpSystem.xpForSession(it.durationMinutes, 1)
-                                }
-
-                        if (sessionsXp > 0) userPreferences.addXp(-sessionsXp)
+                        removeGameXps(currentUserGame)
 
                         libraryRepository.removeGame(currentUserGame)
                     }
@@ -231,14 +214,22 @@ class GameDetailViewModel(
                         ) { // completed to any other status
                             userPreferences.addXp(-xpDiff)
                         } else if (status == GameStatus.COMPLETED) { // any other status to completed
-                            userPreferences.addXp(xpDiff)
+                            userPreferences.addXpWithLevelUp(
+                                xpDiff,
+                                application.applicationContext,
+                                notifEnabled
+                            )
                         }
                     }
                     // adds the game to the library
                     else -> {
                         // the very first status is completed. Adds xps
                         if (status == GameStatus.COMPLETED) {
-                            userPreferences.addXp(xpDiff)
+                            userPreferences.addXpWithLevelUp(
+                                xpDiff,
+                                application.applicationContext,
+                                notifEnabled
+                            )
                         }
                         _uiState.update {
                             it.copy(isLoadingAchievements = true)
@@ -249,6 +240,40 @@ class GameDetailViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Remove the xp gained through playing this game, completing
+     * its achievements and rating it
+     */
+    private suspend fun removeGameXps(currentUserGame: UserGameEntity) {
+        // removes completed achievement xps
+        var detractedXps =
+            libraryRepository.getAchievementsByGame(currentUserGame.gameId)
+                .first()
+                .filter { it.isCompleted }
+                .sumOf {
+                    XpSystem.xpForAchievement(
+                        it.percent,
+                        1
+                    )
+                }
+
+        // removes the sessions playtime xps
+        detractedXps +=
+            libraryRepository.getSessionsByGame(currentUserGame.gameId)
+                .first()
+                .sumOf {
+                    XpSystem.xpForSession(it.durationMinutes, 1)
+                }
+
+        // removes the rating xps
+        currentUserGame.personalRating?.let {
+            detractedXps += XpSystem.xpForGameRating(1)
+        }
+
+        userPreferences.addXp(-detractedXps)
+
     }
 
     fun onNotesChanged(notes: String) {
@@ -269,7 +294,13 @@ class GameDetailViewModel(
                 if (it.personalRating == null) {
                     val userXpData = userPreferences.userXp.first()
                     val xpDiff = XpSystem.xpForGameRating(userXpData.dayStreak)
-                    userPreferences.addXp(xpDiff)
+                    val notifEnabled = userPreferences.notificationPreferences.first().levelEnabled
+
+                    userPreferences.addXpWithLevelUp(
+                        xpDiff,
+                        application.applicationContext,
+                        notifEnabled
+                    )
                 }
             }
             libraryRepository.updatePersonalRating(gameId, rating)
@@ -293,7 +324,18 @@ class GameDetailViewModel(
             // assigns / removes xp
             val userXpData = userPreferences.userXp.first()
             val xpDiff = XpSystem.xpForAchievement(completionPerc, userXpData.dayStreak)
-            userPreferences.addXp(if (isCompleted) xpDiff else -xpDiff)
+
+            if (isCompleted) {
+                val notifEnabled = userPreferences.notificationPreferences.first().levelEnabled
+                userPreferences.addXpWithLevelUp(
+                    xpDiff,
+                    application.applicationContext,
+                    notifEnabled
+                )
+            } else {
+                userPreferences.addXp(-xpDiff)
+
+            }
         }
     }
 
@@ -367,13 +409,20 @@ class GameDetailViewModel(
                 )
             }
 
+            var xpDiff = 0
             sessions.forEach {
                 libraryRepository.insertSession(it)
 
                 val userXpData = userPreferences.userXp.first()
-                val xpDiff = XpSystem.xpForSession(it.durationMinutes, userXpData.dayStreak)
-                userPreferences.addXp(xpDiff)
+                xpDiff += XpSystem.xpForSession(it.durationMinutes, userXpData.dayStreak)
             }
+
+            val notifEnabled = userPreferences.notificationPreferences.first().levelEnabled
+            userPreferences.addXpWithLevelUp(
+                xpDiff,
+                application.applicationContext,
+                notifEnabled
+            )
         }
     }
 }

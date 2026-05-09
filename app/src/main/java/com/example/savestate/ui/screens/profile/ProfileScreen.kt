@@ -2,6 +2,7 @@ package com.example.savestate.ui.screens.profile
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +24,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -28,8 +34,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
+import com.example.savestate.data.models.NotificationPreferences
 import com.example.savestate.data.models.Theme
 import com.example.savestate.domain.XpSystem
+import com.example.savestate.notification.NotificationHelper
+import com.example.savestate.ui.components.profile.NotificationsCard
 import com.example.savestate.ui.components.profile.ProfileHeader
 import com.example.savestate.ui.components.profile.ThemeSelector
 import com.google.firebase.auth.FirebaseAuth
@@ -50,6 +59,9 @@ fun ProfileScreen(
     val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val firebaseUser = FirebaseAuth.getInstance().currentUser
+
+    var hasNotifPermission by remember { mutableStateOf(NotificationHelper.hasPermission(context)) }
+    val notifPrefs by profileViewModel.notificationPreferences.collectAsStateWithLifecycle()
 
     // camera launcher
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -81,6 +93,16 @@ fun ProfileScreen(
         }
     }
 
+    // notification launcher
+    val notifPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasNotifPermission = granted
+        if (granted) {
+            profileViewModel.onNotifPermissionGranted(context, notifPrefs)
+        }
+    }
+
     LaunchedEffect(Unit) {
         appViewModel.setTopBar(
             title = "Profile & Settings"
@@ -107,6 +129,36 @@ fun ProfileScreen(
         color = MaterialTheme.colorScheme.background,
     ) {
         Column {
+            // shown if the user didn't grant notification permission
+            if (uiState.showNotifRationale) {
+                AlertDialog(
+                    onDismissRequest = { profileViewModel.onRationaleDismissed() },
+                    icon = {
+                        Icon(Icons.Default.Notifications, contentDescription = null)
+                    },
+                    title = { Text("Enable notifications") },
+                    text = {
+                        Text("Savestate needs notification permission to remind you of your daily " +
+                                "streak, notify you when you reach a new level, and show you the " +
+                                "duration of your current gameplay session as a notification")
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            profileViewModel.onRationaleDismissed()
+                            // displayed only if the permission is needed
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        }) { Text("Continue") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { profileViewModel.onRationaleDismissed() }) {
+                            Text("Not now")
+                        }
+                    }
+                )
+            }
+
             val level = XpSystem.levelFromXp(userXp.xp)
             val levelTitle = XpSystem.levelTitle(level)
             // profile info
@@ -141,7 +193,29 @@ fun ProfileScreen(
             )
             AppSettings(
                 selectedTheme = theme,
-                onThemeSelected = { appViewModel.setTheme(it) }
+                onThemeSelected = { appViewModel.setTheme(it) },
+                notifPrefs = notifPrefs,
+                hasNotifPermission = hasNotifPermission,
+                onStreakToggled = { enabled ->
+                    profileViewModel.onNotifToggled(
+                        context,
+                        notifPrefs,
+                        notifPrefs.copy(streakEnabled = enabled)
+                    )
+                },
+                onLevelToggled = { enabled ->
+                    profileViewModel.onNotifToggled(
+                        context,
+                        notifPrefs,
+                        notifPrefs.copy(levelEnabled = enabled)
+                    )
+                },
+                onStreakTimeSelected = { hour, minute ->
+                    profileViewModel.onStreakTimeChanged(context, hour, minute, notifPrefs)
+                },
+                onRequestPermission = {
+                    profileViewModel.requestNotifPermission()
+                }
             )
         }
     }
@@ -151,16 +225,26 @@ fun ProfileScreen(
 fun AppSettings(
     selectedTheme: Theme,
     onThemeSelected: (Theme) -> Unit,
-    // notifSettings: NotificationSettings,
-    // onNotifChanged: (NotificationSettings) -> Unit,
+    notifPrefs: NotificationPreferences,
+    hasNotifPermission: Boolean,
+    onStreakToggled: (Boolean) -> Unit,
+    onLevelToggled: (Boolean) -> Unit,
+    onStreakTimeSelected: (hour: Int, minute: Int) -> Unit,
+    onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         SettingsSectionLabel("Appearance")
         ThemeSelector(selectedTheme, onThemeSelected)
-
         SettingsSectionLabel("Notifications")
-        // NotificationsCard(notifSettings, onNotifChanged)
+        NotificationsCard(
+            notifPrefs = notifPrefs,
+            hasPermission = hasNotifPermission,
+            onStreakToggled = onStreakToggled,
+            onLevelToggled = onLevelToggled,
+            onStreakTimeSelected = onStreakTimeSelected,
+            onRequestPermission = onRequestPermission
+        )
     }
 }
 

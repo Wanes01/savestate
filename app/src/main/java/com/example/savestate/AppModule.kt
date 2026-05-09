@@ -21,6 +21,7 @@ import com.example.savestate.ui.screens.search.SearchViewModel
 import com.example.savestate.ui.screens.stats.StatsViewModel
 import com.google.firebase.auth.FirebaseAuth
 import org.koin.android.ext.koin.androidApplication
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -65,16 +66,17 @@ val appModule = module {
     single { get<SavestateDatabase>().userAchievementDao() }
     single { get<SavestateDatabase>().gameSessionDao() }
 
-    // active session
-    single { SessionManager(get(), get()) }
+    // active session, requires local context
+    single { SessionManager(androidContext(), get(), get()) }
 
     // repository and viewmodel
     single { AuthRepository(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { AppViewModel(get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
-    viewModel { GameDetailViewModel(get(), get(), get(), get()) }
     viewModel { LibraryViewModel(get(), get()) }
     viewModel { StatsViewModel(get(), get()) }
+    // game detail and the profile screen both require local context
+    viewModel { GameDetailViewModel(androidApplication(), get(), get(), get(), get()) }
     viewModel { ProfileViewModel(androidApplication(), get()) }
 }
