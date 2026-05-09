@@ -40,6 +40,7 @@ fun NotificationsCard(
     hasPermission: Boolean,
     onStreakToggled: (Boolean) -> Unit,
     onLevelToggled: (Boolean) -> Unit,
+    onSessionToggled: (Boolean) -> Unit,
     onStreakTimeSelected: (hour: Int, minute: Int) -> Unit,
     onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier
@@ -77,7 +78,7 @@ fun NotificationsCard(
             Spacer(Modifier.height(8.dp))
         }
 
-        // daily streak toggle
+        // daily streak notification toggle
         ListItem(
             headlineContent = { Text("Streak reminder") },
             supportingContent = if (notifPrefs.streakEnabled) {
@@ -102,13 +103,34 @@ fun NotificationsCard(
 
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-        // level up toggle
+        // level up notification toggle
         ListItem(
             headlineContent = { Text("Level progression") },
             trailingContent = {
                 Switch(
                     checked = notifPrefs.levelEnabled && hasPermission,
                     onCheckedChange = onLevelToggled,
+                    enabled = hasPermission
+                )
+            }
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+        // session notification toggle
+        ListItem(
+            headlineContent = { Text("Active session timer") },
+            supportingContent = {
+                Text(
+                    text = "Shows a notification with the elapsed time while a session is active",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            trailingContent = {
+                Switch(
+                    checked = notifPrefs.sessionEnabled && hasPermission,
+                    onCheckedChange = onSessionToggled,
                     enabled = hasPermission
                 )
             }

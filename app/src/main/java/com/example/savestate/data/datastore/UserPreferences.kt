@@ -30,6 +30,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         val NOTIF_STREAK_HOUR = intPreferencesKey("notif_streak_hour")
         val NOTIF_STREAK_MINUTE = intPreferencesKey("notif_streak_minute")
         val NOTIF_LEVEL_ENABLED = booleanPreferencesKey("notif_level_enabled")
+        val NOTIF_SESSION_ENABLED = booleanPreferencesKey("notif_session_enabled")
     }
 
     // the current user data
@@ -57,7 +58,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             streakEnabled = prefs[NOTIF_STREAK_ENABLED] ?: false,
             streakHour = prefs[NOTIF_STREAK_HOUR] ?: 20,
             streakMinute = prefs[NOTIF_STREAK_MINUTE] ?: 0,
-            levelEnabled = prefs[NOTIF_LEVEL_ENABLED] ?: false
+            levelEnabled = prefs[NOTIF_LEVEL_ENABLED] ?: false,
+            sessionEnabled = prefs[NOTIF_SESSION_ENABLED] ?: false
         )
     }
 
@@ -87,7 +89,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
      */
     suspend fun clearUser() {
         dataStore.edit { prefs ->
-            listOf(
+            setOf(
                 IS_LOGGED_IN,
                 USER_ID,
                 DISPLAY_NAME,
@@ -99,7 +101,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
                 NOTIF_STREAK_ENABLED,
                 NOTIF_STREAK_HOUR,
                 NOTIF_STREAK_MINUTE,
-                NOTIF_LEVEL_ENABLED
+                NOTIF_LEVEL_ENABLED,
+                NOTIF_SESSION_ENABLED
             ).forEach { prefs.remove(it) }
         }
     }
@@ -185,6 +188,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs[NOTIF_STREAK_HOUR] = notifPrefs.streakHour
             prefs[NOTIF_STREAK_MINUTE] = notifPrefs.streakMinute
             prefs[NOTIF_LEVEL_ENABLED] = notifPrefs.levelEnabled
+            prefs[NOTIF_SESSION_ENABLED] = notifPrefs.sessionEnabled
         }
     }
 }

@@ -210,6 +210,13 @@ fun ProfileScreen(
                         notifPrefs.copy(levelEnabled = enabled)
                     )
                 },
+                onSessionToggled = { enabled ->
+                    profileViewModel.onNotifToggled(
+                        context,
+                        notifPrefs,
+                        notifPrefs.copy(sessionEnabled = enabled)
+                    )
+                },
                 onStreakTimeSelected = { hour, minute ->
                     profileViewModel.onStreakTimeChanged(context, hour, minute, notifPrefs)
                 },
@@ -229,6 +236,7 @@ fun AppSettings(
     hasNotifPermission: Boolean,
     onStreakToggled: (Boolean) -> Unit,
     onLevelToggled: (Boolean) -> Unit,
+    onSessionToggled: (Boolean) -> Unit,
     onStreakTimeSelected: (hour: Int, minute: Int) -> Unit,
     onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier
@@ -242,6 +250,7 @@ fun AppSettings(
             hasPermission = hasNotifPermission,
             onStreakToggled = onStreakToggled,
             onLevelToggled = onLevelToggled,
+            onSessionToggled = onSessionToggled,
             onStreakTimeSelected = onStreakTimeSelected,
             onRequestPermission = onRequestPermission
         )

@@ -339,7 +339,7 @@ class GameDetailViewModel(
         }
     }
 
-    // Session cronometer actions
+    // Session chronometer actions
 
     /**
      * Starts/stops the active session.
@@ -347,7 +347,6 @@ class GameDetailViewModel(
      * based on its duration.
      * Does nothing if another session is already active.
      */
-    // GameDetailViewModel
     fun onSessionToggled() {
         val game = _uiState.value.game ?: return
 

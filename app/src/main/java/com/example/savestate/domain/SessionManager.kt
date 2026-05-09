@@ -1,14 +1,19 @@
 package com.example.savestate.domain
 
 import android.content.Context
+import androidx.core.content.ContextCompat
 import androidx.navigation.internal.NavContext
 import com.example.savestate.data.database.dao.GameSessionDao
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.UserPreferences
+import com.example.savestate.services.SessionForegroundService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 // the current active session
 data class ActiveSession(
@@ -27,12 +32,26 @@ class SessionManager(
 
     fun startSession(gameId: Int, gameName: String) {
         if (_activeSession.value?.gameId == gameId) return
-        _activeSession.value = ActiveSession(gameId = gameId, gameName = gameName)
+        val session = ActiveSession(gameId = gameId, gameName = gameName)
+        _activeSession.value = session
+
+        // starts the chronometer service
+        CoroutineScope(Dispatchers.IO).launch {
+            val notifEnabled = userPreferences.notificationPreferences.first().sessionEnabled
+            if (notifEnabled) {
+                val intent = SessionForegroundService.startIntent(
+                    context, gameName, session.startTime)
+                ContextCompat.startForegroundService(context, intent)
+            }
+        }
     }
 
     suspend fun stopSession() {
         val session = _activeSession.value ?: return
         _activeSession.value = null
+
+        // stops the service even if notification was not enabled, just to be sure
+        context.startService(SessionForegroundService.stopIntent(context))
 
         val endTime = System.currentTimeMillis()
         val durationMinutes = session.startTime.deltaToMinutes(endTime)
@@ -54,10 +73,6 @@ class SessionManager(
     }
 
     private fun Long.deltaToMinutes(endTime: Long) = ((endTime - this) / 1000 / 60).toInt()
-
-    fun cancelSession() {
-        _activeSession.value = null
-    }
 }
 
 fun Long.toFormattedTime(): String {

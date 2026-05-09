@@ -12,9 +12,11 @@ object NotificationHelper {
 
     const val CHANNEL_STREAK = "channel_streak"
     const val CHANNEL_LEVEL = "channel_level"
+    const val CHANNEL_SESSION = "channel_session"
 
     const val NOTIF_ID_STREAK = 1
     const val NOTIF_ID_LEVEL = 2
+    const val NOTIF_ID_SESSION = 3
 
     /**
      * Creates a notification channels on the specified context
@@ -22,6 +24,7 @@ object NotificationHelper {
     fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
 
+        // streak channel
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_STREAK,
@@ -32,6 +35,7 @@ object NotificationHelper {
             }
         )
 
+        // level up channel
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_LEVEL,
@@ -39,6 +43,18 @@ object NotificationHelper {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Notifies you when you reach a new level"
+            }
+        )
+
+        // active session channel
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_SESSION,
+                "Active Session",
+                // low in order to avoid emitting a sound at every update
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Shows the elapsed time of the current game session"
             }
         )
     }
