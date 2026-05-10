@@ -63,6 +63,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
 
             authRepository.loginWithEmail(email, password)
                 .onSuccess {
+
                     _uiState.update { it.copy(isLoading = false) }
                 }
                 .onFailure { error ->

@@ -71,4 +71,16 @@ interface UserGameDao {
      */
     @Query("UPDATE user_games SET personalRating = :rating WHERE gameId = :gameId")
     suspend fun updatePersonalRating(gameId: Int, rating: Float)
+
+    @Query("SELECT * FROM user_games WHERE gameId = :gameId")
+    suspend fun getGameByIdOnce(gameId: Int): UserGameEntity?
+
+    @Query("SELECT * FROM user_games")
+    suspend fun getAllGamesOnce(): List<UserGameEntity>
+
+    @Query("SELECT MAX(addedAt) FROM user_games")
+    suspend fun getLastModifiedAt(): Long?
+
+    @Query("DELETE FROM user_games")
+    suspend fun deleteAllGames()
 }

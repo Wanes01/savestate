@@ -1,10 +1,14 @@
 package com.example.savestate
 
+import android.util.Log
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.SavestateDatabase
+import com.example.savestate.data.database.dao.GameSessionDao
+import com.example.savestate.data.database.dao.UserAchievementDao
+import com.example.savestate.data.database.dao.UserGameDao
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.ThemePreferences
 import com.example.savestate.data.datastore.UserPreferences
@@ -12,6 +16,7 @@ import com.example.savestate.data.models.Theme
 import com.example.savestate.data.models.UserData
 import com.example.savestate.data.models.UserXp
 import com.example.savestate.data.repositories.AuthRepository
+import com.example.savestate.data.repositories.FirestoreSyncRepository
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.domain.XpSystem
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +42,10 @@ class AppViewModel(
     private val themePreferences: ThemePreferences,
     private val userPreferences: UserPreferences,
     private val authRepository: AuthRepository,
+    private val firestoreSyncRepository: FirestoreSyncRepository,
+    private val userGameDao: UserGameDao,
+    private val userAchievementDao: UserAchievementDao,
+    private val gameSessionDao: GameSessionDao,
     private val database: SavestateDatabase
 ) : ViewModel() {
     private val _topBarState = MutableStateFlow(TopBarState())
@@ -89,9 +98,30 @@ class AppViewModel(
 
     fun logout() {
         viewModelScope.launch(Dispatchers.IO) {
-            // removes all table content before logging out
-            database.clearAllTables()
-            authRepository.logout()
+            try {
+                val userId = userPreferences.userData.first().userId
+                if (userId.isNotBlank()) {
+                    val games = userGameDao.getAllGamesOnce()
+                    val achievements = userAchievementDao.getAllAchievementsOnce()
+                    val sessions = gameSessionDao.getAllSessionsOnce()
+                    val xp = userPreferences.userXp.first().xp
+
+                    // overwrites firestore user's data
+                    firestoreSyncRepository.uploadUserData(
+                        userId = userId,
+                        games = games,
+                        achievements = achievements,
+                        sessions = sessions,
+                        xp = xp
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("AppViewModel", "Firestore sync failed at logout", e)
+            } finally {
+                // logs out even if the sync failed
+                database.clearAllTables()
+                authRepository.logout()
+            }
         }
     }
 }

@@ -49,4 +49,7 @@ interface UserAchievementDao {
     """
     )
     fun getAchievementProgressByGame(): Flow<List<AchievementProgress>>
+
+    @Query("SELECT * FROM user_achievements")
+    suspend fun getAllAchievementsOnce(): List<UserAchievementEntity>
 }

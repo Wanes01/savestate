@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.models.GamePlaytime
 import com.example.savestate.data.models.GameSessionWithName
@@ -76,4 +77,13 @@ interface GameSessionDao {
     """
     )
     fun getTotalMinutesByGame(): Flow<List<GamePlaytime>>
+
+    @Upsert
+    suspend fun upsertSession(session: GameSessionEntity)
+
+    @Query("SELECT * FROM game_sessions")
+    suspend fun getAllSessionsOnce(): List<GameSessionEntity>
+
+    @Query("DELETE FROM game_sessions")
+    suspend fun deleteAllSessions()
 }

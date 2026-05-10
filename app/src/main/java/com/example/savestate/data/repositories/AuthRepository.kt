@@ -1,13 +1,18 @@
 package com.example.savestate.data.repositories
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.example.savestate.R
+import com.example.savestate.data.database.dao.GameSessionDao
+import com.example.savestate.data.database.dao.UserAchievementDao
+import com.example.savestate.data.database.dao.UserGameDao
 import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.models.UserData
+import com.example.savestate.data.models.UserXp
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
@@ -17,16 +22,21 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class AuthRepository(
+    private val applicationScope: CoroutineScope,
     private val userPreferences: UserPreferences,
     private val firebaseAuth: FirebaseAuth,
+    private val firestoreSyncRepository: FirestoreSyncRepository,
+    private val userGameDao: UserGameDao,
+    private val userAchievementDao: UserAchievementDao,
+    private val gameSessionDao: GameSessionDao,
 ) {
-
-    val userData: Flow<UserData> = userPreferences.userData
-
     /**
      * Registers a new user with email and password.
      * Throws an exception if the email is already in use or the password is too weak.
@@ -68,6 +78,8 @@ class AuthRepository(
 
             val userData = firebaseUser.toUserData()
             userPreferences.saveUser(userData)
+            // tries to sync user's data with firestore
+            syncAfterLogin(userData)
             Result.success(userData)
 
         } catch (_: FirebaseAuthInvalidUserException) {
@@ -113,6 +125,8 @@ class AuthRepository(
 
             val userData = firebaseUser.toUserData()
             userPreferences.saveUser(userData)
+            // tries to sync user's data with firestore
+            syncAfterLogin(userData)
             Result.success(userData)
 
         } catch (_: GetCredentialCancellationException) {
@@ -154,6 +168,44 @@ class AuthRepository(
             userPreferences.saveUser(firebaseUser.toUserData())
         } else {
             userPreferences.clearUser()
+        }
+    }
+
+    /**
+     * Syncs the firestore user's data.
+     * Retrieves achievements, games, sessions and xp information
+     * to write in the local database.
+     * Does nothing if is the first time the user logs in.
+     */
+    fun syncAfterLogin(userData: UserData) {
+        applicationScope.launch {
+            try {
+                val remote = firestoreSyncRepository.downloadUserData(userData.userId)
+
+                // if there is nothing in firestore then this is the first login
+                // does nothing
+                if (remote.games.isEmpty() && remote.sessions.isEmpty()) {
+                    return@launch
+                }
+
+                // replaces all data: firestore becomes the source of truth
+                userGameDao.deleteAllGames()       // cascade su achievements
+                gameSessionDao.deleteAllSessions()
+
+                remote.games.forEach { userGameDao.upsertGame(it) }
+                if (remote.achievements.isNotEmpty()) {
+                    userAchievementDao.upsertAchievements(remote.achievements)
+                }
+                remote.sessions.forEach { gameSessionDao.upsertSession(it) }
+
+                val localXp = userPreferences.userXp.first().xp
+                if (remote.xp > localXp) {
+                    userPreferences.saveXpData(UserXp(xp = remote.xp, dayStreak = 0))
+                }
+
+            } catch (e: Exception) {
+                Log.e("FirestoreSync", "Sync failed: ${e.message}", e)
+            }
         }
     }
 }

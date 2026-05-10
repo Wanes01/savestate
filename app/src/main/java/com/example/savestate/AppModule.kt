@@ -9,6 +9,7 @@ import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.network.RawgDataSource
 import com.example.savestate.data.network.rawgHttpClient
 import com.example.savestate.data.repositories.AuthRepository
+import com.example.savestate.data.repositories.FirestoreSyncRepository
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.data.repositories.RawgRepository
 import com.example.savestate.data.repositories.StatsRepository
@@ -19,7 +20,9 @@ import com.example.savestate.ui.screens.library.LibraryViewModel
 import com.example.savestate.ui.screens.profile.ProfileViewModel
 import com.example.savestate.ui.screens.search.SearchViewModel
 import com.example.savestate.ui.screens.stats.StatsViewModel
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -28,6 +31,9 @@ import org.koin.dsl.module
 val Context.dataStore by preferencesDataStore("user_prefs")
 
 val appModule = module {
+    // app scope
+    single { (androidApplication() as SavestateApplication).applicationScope }
+
     // datastore and preferences
     single { get<Context>().dataStore }
     single { UserPreferences(get()) }
@@ -35,6 +41,8 @@ val appModule = module {
 
     // firebase (this singleton is handled by the firebase SDK)
     single { FirebaseAuth.getInstance() }
+    single { Firebase.firestore }
+    single { FirestoreSyncRepository(get()) }
 
     // network
     single { rawgHttpClient }
@@ -70,9 +78,9 @@ val appModule = module {
     single { SessionManager(androidContext(), get(), get()) }
 
     // repository and viewmodel
-    single { AuthRepository(get(), get()) }
+    single { AuthRepository(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { AuthViewModel(get()) }
-    viewModel { AppViewModel(get(), get(), get(), get()) }
+    viewModel { AppViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
     viewModel { LibraryViewModel(get(), get()) }
     viewModel { StatsViewModel(get(), get()) }
