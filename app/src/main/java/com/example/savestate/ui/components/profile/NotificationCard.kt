@@ -83,7 +83,12 @@ fun NotificationsCard(
             headlineContent = { Text("Streak reminder") },
             supportingContent = if (notifPrefs.streakEnabled) {
                 {
-                    val time = String.format(Locale.getDefault(), "%02d:%02d", notifPrefs.streakHour, notifPrefs.streakMinute)
+                    val time = String.format(
+                        Locale.getDefault(),
+                        "%02d:%02d",
+                        notifPrefs.streakHour,
+                        notifPrefs.streakMinute
+                    )
                     Text(
                         text = "Every day at $time · Tap to change",
                         style = MaterialTheme.typography.bodySmall,

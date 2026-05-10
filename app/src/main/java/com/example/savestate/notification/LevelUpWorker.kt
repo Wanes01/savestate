@@ -1,13 +1,13 @@
 package com.example.savestate.notification
 
 import android.Manifest
-import com.example.savestate.R
 import android.content.Context
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.example.savestate.R
 
 // level up notification
 class LevelUpWorker(

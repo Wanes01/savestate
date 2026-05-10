@@ -2,7 +2,6 @@ package com.example.savestate.domain
 
 import android.content.Context
 import androidx.core.content.ContextCompat
-import androidx.navigation.internal.NavContext
 import com.example.savestate.data.database.dao.GameSessionDao
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.UserPreferences
@@ -40,7 +39,8 @@ class SessionManager(
             val notifEnabled = userPreferences.notificationPreferences.first().sessionEnabled
             if (notifEnabled) {
                 val intent = SessionForegroundService.startIntent(
-                    context, gameName, session.startTime)
+                    context, gameName, session.startTime
+                )
                 ContextCompat.startForegroundService(context, intent)
             }
         }
@@ -67,7 +67,8 @@ class SessionManager(
             )
         )
 
-        val xpDiff = XpSystem.xpForSession(durationMinutes, userPreferences.userXp.first().dayStreak)
+        val xpDiff =
+            XpSystem.xpForSession(durationMinutes, userPreferences.userXp.first().dayStreak)
         val notifEnabled = userPreferences.notificationPreferences.first().levelEnabled
         userPreferences.addXpWithLevelUp(xpDiff, context, notifEnabled)
     }

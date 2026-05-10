@@ -68,6 +68,7 @@ class SessionForegroundService : Service() {
                     buildNotification()
                 )
             }
+
             ACTION_STOP -> stopSelf()
         }
         return START_NOT_STICKY

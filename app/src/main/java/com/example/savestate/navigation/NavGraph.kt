@@ -32,14 +32,19 @@ import org.koin.androidx.compose.koinViewModel
 sealed interface NavigationRoute {
     @Serializable
     data object Auth : NavigationRoute
+
     @Serializable
     data object Library : NavigationRoute
+
     @Serializable
     data object Search : NavigationRoute
+
     @Serializable
     data object Stats : NavigationRoute
+
     @Serializable
     data object Profile : NavigationRoute
+
     @Serializable
     data class GameDetails(val gameId: Int) : NavigationRoute
 }

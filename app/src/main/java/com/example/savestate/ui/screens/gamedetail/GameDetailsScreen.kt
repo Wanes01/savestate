@@ -16,9 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.savestate.AppViewModel
 import com.example.savestate.ui.components.gamedetail.GameDetailContent
-import io.ktor.http.parametersOf
 import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
 fun GameDetailsScreen(

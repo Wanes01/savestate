@@ -60,7 +60,9 @@ fun DocumentSnapshot.toUserGameEntity(): UserGameEntity? = try {
         startedAt = getLong("startedAt"),
         completedAt = getLong("completedAt")
     )
-} catch (e: Exception) { null }
+} catch (e: Exception) {
+    null
+}
 
 // user's achievements
 fun UserAchievementEntity.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -83,7 +85,9 @@ fun DocumentSnapshot.toUserAchievementEntity(): UserAchievementEntity? = try {
         percent = getDouble("percent")!!.toFloat(),
         isCompleted = getBoolean("isCompleted")!!
     )
-} catch (e: Exception) { null }
+} catch (e: Exception) {
+    null
+}
 
 // user's game sessions
 fun GameSessionEntity.toFirestoreMap(): Map<String, Any?> = mapOf(
@@ -102,4 +106,6 @@ fun DocumentSnapshot.toGameSessionEntity(): GameSessionEntity? = try {
         endTime = getLong("endTime")!!,
         durationMinutes = getLong("durationMinutes")!!.toInt()
     )
-} catch (e: Exception) { null }
+} catch (e: Exception) {
+    null
+}

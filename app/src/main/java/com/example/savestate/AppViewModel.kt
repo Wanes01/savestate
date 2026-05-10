@@ -9,7 +9,6 @@ import com.example.savestate.data.database.SavestateDatabase
 import com.example.savestate.data.database.dao.GameSessionDao
 import com.example.savestate.data.database.dao.UserAchievementDao
 import com.example.savestate.data.database.dao.UserGameDao
-import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.datastore.ThemePreferences
 import com.example.savestate.data.datastore.UserPreferences
 import com.example.savestate.data.models.Theme
@@ -17,11 +16,7 @@ import com.example.savestate.data.models.UserData
 import com.example.savestate.data.models.UserXp
 import com.example.savestate.data.repositories.AuthRepository
 import com.example.savestate.data.repositories.FirestoreSyncRepository
-import com.example.savestate.data.repositories.LibraryRepository
-import com.example.savestate.domain.XpSystem
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

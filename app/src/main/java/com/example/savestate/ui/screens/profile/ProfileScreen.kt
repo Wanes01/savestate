@@ -137,9 +137,11 @@ fun ProfileScreen(
                     },
                     title = { Text("Enable notifications") },
                     text = {
-                        Text("Savestate needs notification permission to remind you of your daily " +
-                                "streak, notify you when you reach a new level, and show you the " +
-                                "duration of your current gameplay session as a notification")
+                        Text(
+                            "Savestate needs notification permission to remind you of your daily " +
+                                    "streak, notify you when you reach a new level, and show you the " +
+                                    "duration of your current gameplay session as a notification"
+                        )
                     },
                     confirmButton = {
                         TextButton(onClick = {

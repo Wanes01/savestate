@@ -2,7 +2,6 @@ package com.example.savestate.ui.screens.gamedetail
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savestate.data.database.entity.GameSessionEntity
 import com.example.savestate.data.database.entity.UserAchievementEntity
@@ -358,6 +357,7 @@ class GameDetailViewModel(
             }
         }
     }
+
     fun stopCurrentAndStartNew() {
         val game = _uiState.value.game ?: return
         /*

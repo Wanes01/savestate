@@ -66,9 +66,6 @@ val appModule = module {
         )
     }
 
-    // stats
-    single { StatsRepository(get(), get(), get()) }
-
     // daos
     single { get<SavestateDatabase>().userGameDao() }
     single { get<SavestateDatabase>().userAchievementDao() }
@@ -77,8 +74,11 @@ val appModule = module {
     // active session, requires local context
     single { SessionManager(androidContext(), get(), get()) }
 
-    // repository and viewmodel
+    // repositories
     single { AuthRepository(get(), get()) }
+    single { StatsRepository(get(), get(), get()) }
+
+    // viewmodels
     viewModel { AuthViewModel(get()) }
     viewModel { AppViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }
