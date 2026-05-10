@@ -78,7 +78,7 @@ fun NavGraph(
         }
     ) {
         composable<NavigationRoute.Auth> {
-            AuthScreen(modifier, wasLoginSuccessful = userData.isLoggedIn) {
+            AuthScreen(modifier, appViewModel, wasLoginSuccessful = userData.isLoggedIn) {
                 navController.navigate(NavigationRoute.Library) {
                     popUpTo(NavigationRoute.Auth) {
                         inclusive = true
@@ -117,9 +117,7 @@ fun NavGraph(
             StatsScreen(modifier, appViewModel)
         }
         composable<NavigationRoute.Profile> {
-            ProfileScreen(modifier, appViewModel) {
-                appViewModel.logout()
-            }
+            ProfileScreen(modifier, appViewModel)
         }
     }
 }

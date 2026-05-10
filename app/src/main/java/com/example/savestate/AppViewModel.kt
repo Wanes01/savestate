@@ -19,6 +19,7 @@ import com.example.savestate.data.repositories.AuthRepository
 import com.example.savestate.data.repositories.FirestoreSyncRepository
 import com.example.savestate.data.repositories.LibraryRepository
 import com.example.savestate.domain.XpSystem
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +49,9 @@ class AppViewModel(
     private val gameSessionDao: GameSessionDao,
     private val database: SavestateDatabase
 ) : ViewModel() {
+    private val _isSyncing = MutableStateFlow(false)
     private val _topBarState = MutableStateFlow(TopBarState())
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
     val topBarState: StateFlow<TopBarState> = _topBarState.asStateFlow()
 
     val userData: StateFlow<UserData> = userPreferences.userData
@@ -96,8 +99,50 @@ class AppViewModel(
         viewModelScope.launch { themePreferences.setTheme(theme) }
     }
 
+    /**
+     * Syncs the firestore user's data.
+     * Retrieves achievements, games, sessions and xp information
+     * to write in the local database.
+     * Does nothing if is the first time the user logs in.
+     */
+    fun syncAfterLogin(userData: UserData) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSyncing.value = true
+            try {
+                val remote = firestoreSyncRepository.downloadUserData(userData.userId)
+
+                // if there is nothing in firestore then this is the first login
+                // does nothing
+                if (remote.games.isEmpty() && remote.sessions.isEmpty()) {
+                    return@launch
+                }
+
+                // replaces all data: firestore becomes the source of truth
+                userGameDao.deleteAllGames() // cascades on achievements
+                gameSessionDao.deleteAllSessions()
+
+                remote.games.forEach { userGameDao.upsertGame(it) }
+                if (remote.achievements.isNotEmpty()) {
+                    userAchievementDao.upsertAchievements(remote.achievements)
+                }
+                remote.sessions.forEach { gameSessionDao.upsertSession(it) }
+
+                val localXp = userPreferences.userXp.first().xp
+                if (remote.xp > localXp) {
+                    userPreferences.saveXpData(UserXp(xp = remote.xp, dayStreak = 0))
+                }
+
+            } catch (e: Exception) {
+                Log.e("FirestoreSync", "Sync failed: ${e.message}", e)
+            } finally {
+                _isSyncing.value = false
+            }
+        }
+    }
+
     fun logout() {
         viewModelScope.launch(Dispatchers.IO) {
+            _isSyncing.value = true
             try {
                 val userId = userPreferences.userData.first().userId
                 if (userId.isNotBlank()) {
@@ -118,6 +163,7 @@ class AppViewModel(
             } catch (e: Exception) {
                 Log.w("AppViewModel", "Firestore sync failed at logout", e)
             } finally {
+                _isSyncing.value = false
                 // logs out even if the sync failed
                 database.clearAllTables()
                 authRepository.logout()

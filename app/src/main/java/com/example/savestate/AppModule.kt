@@ -78,7 +78,7 @@ val appModule = module {
     single { SessionManager(androidContext(), get(), get()) }
 
     // repository and viewmodel
-    single { AuthRepository(get(), get(), get(), get(), get(), get(), get()) }
+    single { AuthRepository(get(), get()) }
     viewModel { AuthViewModel(get()) }
     viewModel { AppViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SearchViewModel(get()) }

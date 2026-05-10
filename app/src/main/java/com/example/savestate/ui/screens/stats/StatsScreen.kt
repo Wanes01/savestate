@@ -22,7 +22,7 @@ import kotlin.math.roundToInt
 @Composable
 fun StatsScreen(
     modifier: Modifier = Modifier,
-    appViewModel: AppViewModel
+    appViewModel: AppViewModel,
 ) {
     val viewModel: StatsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

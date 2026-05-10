@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.savestate.AppViewModel
 import com.example.savestate.R
 import com.example.savestate.ui.components.AppButton
 import com.example.savestate.ui.components.GoogleButton
@@ -61,6 +62,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AuthScreen(
     modifier: Modifier,
+    appViewModel: AppViewModel,
     wasLoginSuccessful: Boolean,
     onLoginSuccess: () -> Unit
 ) {
@@ -222,7 +224,11 @@ fun AuthScreen(
                 onClick = {
                     viewModel.clearError()
                     if (isLoginMode) {
-                        viewModel.login(email, password)
+                        viewModel.login(
+                            email,
+                            password,
+                            onSuccess = { userData -> appViewModel.syncAfterLogin(userData) }
+                        )
                     } else {
                         viewModel.register(email, password, confirmPassword)
                     }
@@ -250,7 +256,10 @@ fun AuthScreen(
                 enabled = !uiState.isLoading,
                 onClick = {
                     viewModel.clearError()
-                    viewModel.loginWithGoogle(context)
+                    viewModel.loginWithGoogle(
+                        context,
+                        onSuccess = { userData -> appViewModel.syncAfterLogin(userData) }
+                    )
                 }
             )
         }

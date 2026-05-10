@@ -23,8 +23,8 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun GameDetailsScreen(
     modifier: Modifier = Modifier,
-    gameId: Int,
     appViewModel: AppViewModel,
+    gameId: Int,
     onGoBack: () -> Unit
 ) {
     val gameDetailViewModel: GameDetailViewModel = koinViewModel()

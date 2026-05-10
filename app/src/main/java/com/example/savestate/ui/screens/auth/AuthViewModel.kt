@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.savestate.data.models.UserData
 import com.example.savestate.data.repositories.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, onSuccess: (UserData) -> Unit) {
         val emailError = validateEmail(email)
 
         // does not contact the server. Bad email.
@@ -62,8 +63,8 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             authRepository.loginWithEmail(email, password)
-                .onSuccess {
-
+                .onSuccess { userData ->
+                    onSuccess(userData)
                     _uiState.update { it.copy(isLoading = false) }
                 }
                 .onFailure { error ->
@@ -74,11 +75,14 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun loginWithGoogle(context: Context) {
+    fun loginWithGoogle(context: Context, onSuccess: (UserData) -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             authRepository.loginWithGoogle(context)
-                .onSuccess { _uiState.update { it.copy(isLoading = false) } }
+                .onSuccess { userData ->
+                    onSuccess(userData)
+                    _uiState.update { it.copy(isLoading = false) }
+                }
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false, error = error.message) }
                 }

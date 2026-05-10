@@ -48,7 +48,6 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     appViewModel: AppViewModel,
-    onLogOut: () -> Unit
 ) {
     val profileViewModel: ProfileViewModel = koinViewModel()
 
@@ -108,7 +107,7 @@ fun ProfileScreen(
             title = "Profile & Settings"
         ) {
             TextButton(
-                onClick = onLogOut,
+                onClick = { appViewModel.logout() },
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )

@@ -29,13 +29,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class AuthRepository(
-    private val applicationScope: CoroutineScope,
     private val userPreferences: UserPreferences,
     private val firebaseAuth: FirebaseAuth,
-    private val firestoreSyncRepository: FirestoreSyncRepository,
-    private val userGameDao: UserGameDao,
-    private val userAchievementDao: UserAchievementDao,
-    private val gameSessionDao: GameSessionDao,
 ) {
     /**
      * Registers a new user with email and password.
@@ -78,8 +73,6 @@ class AuthRepository(
 
             val userData = firebaseUser.toUserData()
             userPreferences.saveUser(userData)
-            // tries to sync user's data with firestore
-            syncAfterLogin(userData)
             Result.success(userData)
 
         } catch (_: FirebaseAuthInvalidUserException) {
@@ -125,8 +118,6 @@ class AuthRepository(
 
             val userData = firebaseUser.toUserData()
             userPreferences.saveUser(userData)
-            // tries to sync user's data with firestore
-            syncAfterLogin(userData)
             Result.success(userData)
 
         } catch (_: GetCredentialCancellationException) {
@@ -168,44 +159,6 @@ class AuthRepository(
             userPreferences.saveUser(firebaseUser.toUserData())
         } else {
             userPreferences.clearUser()
-        }
-    }
-
-    /**
-     * Syncs the firestore user's data.
-     * Retrieves achievements, games, sessions and xp information
-     * to write in the local database.
-     * Does nothing if is the first time the user logs in.
-     */
-    fun syncAfterLogin(userData: UserData) {
-        applicationScope.launch {
-            try {
-                val remote = firestoreSyncRepository.downloadUserData(userData.userId)
-
-                // if there is nothing in firestore then this is the first login
-                // does nothing
-                if (remote.games.isEmpty() && remote.sessions.isEmpty()) {
-                    return@launch
-                }
-
-                // replaces all data: firestore becomes the source of truth
-                userGameDao.deleteAllGames()       // cascade su achievements
-                gameSessionDao.deleteAllSessions()
-
-                remote.games.forEach { userGameDao.upsertGame(it) }
-                if (remote.achievements.isNotEmpty()) {
-                    userAchievementDao.upsertAchievements(remote.achievements)
-                }
-                remote.sessions.forEach { gameSessionDao.upsertSession(it) }
-
-                val localXp = userPreferences.userXp.first().xp
-                if (remote.xp > localXp) {
-                    userPreferences.saveXpData(UserXp(xp = remote.xp, dayStreak = 0))
-                }
-
-            } catch (e: Exception) {
-                Log.e("FirestoreSync", "Sync failed: ${e.message}", e)
-            }
         }
     }
 }
