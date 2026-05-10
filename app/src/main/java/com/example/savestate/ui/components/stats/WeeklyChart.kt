@@ -45,8 +45,7 @@ fun WeeklyChart(weeklyHours: Map<LocalDate, Float>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 entries.forEach { (date, hours) ->
                     WeeklyBar(
@@ -54,7 +53,8 @@ fun WeeklyChart(weeklyHours: Map<LocalDate, Float>) {
                         maxHours = maxHours,
                         label = date.dayOfWeek
                             .getDisplayName(TextStyle.SHORT, LocalLocale.current.platformLocale)
-                            .take(1)
+                            .take(1),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -63,25 +63,31 @@ fun WeeklyChart(weeklyHours: Map<LocalDate, Float>) {
 }
 
 @Composable
-private fun WeeklyBar(hours: Float, maxHours: Float, label: String) {
+private fun WeeklyBar(
+    hours: Float,
+    maxHours: Float,
+    label: String,
+    modifier: Modifier = Modifier
+) {
     val fraction = (hours / maxHours).coerceIn(0f, 1f)
     val barColor = MaterialTheme.colorScheme.primary
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(50.dp)
+        verticalArrangement = Arrangement.Bottom,
+        modifier = modifier.fillMaxHeight()
     ) {
         Box(
             modifier = Modifier
-                .width(40.dp)
-                .weight(1f),
+                .weight(1f)
+                .fillMaxWidth(),
             contentAlignment = Alignment.BottomCenter
         ) {
             Box(
                 modifier = Modifier
-                    .width(50.dp)
+                    .fillMaxWidth(0.6f)
                     .fillMaxHeight(fraction)
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
                     .background(barColor)
             )
         }
@@ -89,13 +95,15 @@ private fun WeeklyBar(hours: Float, maxHours: Float, label: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(2.dp))
         Text(
             text = hours.toHoursAndMinutes(),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
         )
     }
 }

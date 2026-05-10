@@ -38,6 +38,7 @@ fun StatsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
+
         item { XpCard(uiState) }
         item { SummaryRow(uiState) }
         item { WeeklyChart(uiState.weeklyHours) }
