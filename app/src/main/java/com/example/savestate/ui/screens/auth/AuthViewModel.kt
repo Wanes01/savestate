@@ -53,6 +53,11 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     fun login(email: String, password: String, onSuccess: (UserData) -> Unit) {
         val emailError = validateEmail(email)
 
+        if (password.isBlank()) {
+            _uiState.update { it.copy(error = "Password cannot be empty") }
+            return
+        }
+
         // does not contact the server. Bad email.
         emailError?.let {
             _uiState.update { it.copy(error = emailError) }
